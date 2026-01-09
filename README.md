@@ -47,7 +47,7 @@ A secure, responsive, multi-user web-based Todo application implementing all Bas
 
 ## 📋 Prerequisites
 
-- Node.js 18+ for frontend
+- Node.js 16+ for frontend
 - Python 3.13+ for backend
 - PostgreSQL database (Neon Serverless recommended)
 
