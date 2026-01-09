@@ -87,8 +87,7 @@ cd backend
 
 Install dependencies:
 ```bash
-pip install poetry
-poetry install
+uv pip install requirements.txt
 ```
 
 Create a `.env` file in the backend directory:
@@ -113,7 +112,7 @@ Make sure to use the same `BETTER_AUTH_SECRET` in both frontend and backend envi
 #### Backend (in one terminal):
 ```bash
 cd backend
-poetry run python -m src.main
+uvicorn src.main:app --reload
 ```
 
 #### Frontend (in another terminal):
@@ -304,10 +303,6 @@ After deployment, you can add custom domains to both your frontend and backend:
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🐛 Issues
 
