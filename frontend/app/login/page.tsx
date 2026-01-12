@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from 'better-auth/react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const metadata = {
   title: 'Login - Todo App',

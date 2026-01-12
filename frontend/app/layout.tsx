@@ -2,27 +2,28 @@
 
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from 'better-auth/react';
+import { useAuth } from '@/contexts/AuthContext';
 import { BetterAuthProvider } from '@/lib/auth';
 import { UserProfileDropdown } from '@/components/UserProfileDropdown';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 interface RootLayoutProps {
   children: ReactNode;
 }
 
 function AuthenticatedLayout({ children }: RootLayoutProps) {
-  const { user, isPending } = useAuth();
+  const { user, loading } = useAuth(); // Changed from isPending to loading
   const router = useRouter();
 
   useEffect(() => {
     // If user is not logged in and not on auth pages, redirect to login
-    if (!isPending && !user) {
+    if (!loading && !user) {
       router.push('/login');
     }
-  }, [user, isPending, router]);
+  }, [user, loading, router]);
 
   // Show loading state while checking auth status
-  if (isPending) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
@@ -98,9 +99,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html lang="en">
       <body className="bg-gray-50 min-h-screen">
         <BetterAuthProvider>
-          <div className="min-h-screen flex flex-col">
-            <AuthenticatedLayout>{children}</AuthenticatedLayout>
-          </div>
+          <AuthProvider>
+            <div className="min-h-screen flex flex-col">
+              <AuthenticatedLayout>{children}</AuthenticatedLayout>
+            </div>
+          </AuthProvider>
         </BetterAuthProvider>
       </body>
     </html>

@@ -13,9 +13,10 @@ async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  // Get the session using Better Auth client
-  const session = typeof window !== 'undefined' ? await auth.getSession() : null;
-  const token = session?.session?.token || null;
+  // Get the token from localStorage where Better Auth stores it
+  const token = typeof window !== 'undefined'
+    ? localStorage.getItem('better-auth-session-token')
+    : null;
 
   const config: RequestInit = {
     headers: {
