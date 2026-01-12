@@ -1,8 +1,8 @@
-import { betterAuth } from "better-auth/react";
+import { createAuthClient } from "better-auth/react";
 import { jwt } from "better-auth/plugins";
 
-export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+export const auth = createAuthClient({
+  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || process.env.BETTER_AUTH_URL || "http://localhost:3000",
   secret: process.env.BETTER_AUTH_SECRET || "your-better-auth-secret-here",
   plugins: [
     jwt({
@@ -11,4 +11,4 @@ export const auth = betterAuth({
   ],
 });
 
-export const { BetterAuthClientProvider: BetterAuthProvider } = auth;
+export const { Provider: BetterAuthProvider } = auth;

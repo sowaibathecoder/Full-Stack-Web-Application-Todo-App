@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from './AuthProvider';
+import { useAuth } from 'better-auth/react';
 
 interface ProtectedRouteProps {
   children: ReactNode;

@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@better-auth/react';
+import { useAuth } from 'better-auth/react';
 import { BetterAuthProvider } from '@/lib/auth';
 import { UserProfileDropdown } from '@/components/UserProfileDropdown';
 

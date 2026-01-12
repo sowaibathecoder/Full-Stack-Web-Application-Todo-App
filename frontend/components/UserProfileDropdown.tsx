@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useAuth } from '@better-auth/react';
+import { useAuth } from 'better-auth/react';
 
 interface UserProfileDropdownProps {
   className?: string;

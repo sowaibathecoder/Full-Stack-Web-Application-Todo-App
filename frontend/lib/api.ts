@@ -2,7 +2,7 @@
  * Type-safe API client for the Full-Stack Multi-User Todo Web Application.
  */
 import { TaskRead, TaskCreate, TaskUpdate } from '../types/tasks';
-import { getBearerToken } from 'better-auth/client';
+import { auth } from './auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
@@ -13,8 +13,9 @@ async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  // Get the JWT token using Better Auth
-  const token = await getBearerToken();
+  // Get the session using Better Auth client
+  const session = typeof window !== 'undefined' ? await auth.getSession() : null;
+  const token = session?.session?.token || null;
 
   const config: RequestInit = {
     headers: {
