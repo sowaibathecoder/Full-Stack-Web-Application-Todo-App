@@ -111,3 +111,4 @@ jest/
 jest.config.js
 coverage/
 .nyc_output/
+tmpclaude-*.cwd
