@@ -34,7 +34,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const fetchSession = async () => {
       try {
         const sessionData = await auth.getSession();
-        setUser(sessionData?.user || null);
+        // Properly access the user from the session data
+        setUser(sessionData?.data?.user || null);
       } catch (error) {
         console.error('Error fetching session:', error);
         setUser(null);

@@ -1,11 +1,8 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { TaskList } from '@/components/TaskList';
 import { EmptyState } from '@/components/EmptyState';
-
-export const metadata = {
-  title: 'Dashboard - Todo App',
-  description: 'View and manage your tasks in your Todo App dashboard.',
-};
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -17,7 +14,7 @@ export default function DashboardPage() {
       setLoading(false);
       // In a real app, this would be determined by the actual task data
       // For now, we'll assume there might be tasks after loading
-      setHasTasks(false); // Assuming initially no tasks for empty state demo
+      // setHasTasks(false); // Assuming initially no tasks for empty state demo
     }, 500);
 
     return () => clearTimeout(timer);
