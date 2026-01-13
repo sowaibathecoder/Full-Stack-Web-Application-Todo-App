@@ -4,7 +4,7 @@
 import { TaskRead, TaskCreate, TaskUpdate } from '../types/tasks';
 import { auth } from './auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 /**
  * Base API request function that handles authentication and common configurations.
