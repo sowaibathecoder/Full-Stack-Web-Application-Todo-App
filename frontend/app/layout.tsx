@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { Header } from '@/components/Header';
+import './globals.css';
 
 interface RootLayoutProps {
   children: ReactNode;
