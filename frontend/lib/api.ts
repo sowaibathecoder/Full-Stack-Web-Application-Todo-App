@@ -19,7 +19,8 @@ async function apiRequest<T>(
   try {
     const sessionData = await auth.getSession();
     // Extract the token from Better Auth session if available
-    token = sessionData?.token || sessionData?.accessToken || sessionData?.data?.token;
+    // Better Auth stores session data in the data property
+    token = sessionData?.data?.session?.token || sessionData?.data?.session?.id;
   } catch (error) {
     console.warn('Could not get session from Better Auth:', error);
   }
