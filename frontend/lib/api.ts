@@ -2,7 +2,6 @@
  * Type-safe API client for the Full-Stack Multi-User Todo Web Application.
  */
 import { TaskRead, TaskCreate, TaskUpdate } from '../types/tasks';
-import { auth } from './auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
