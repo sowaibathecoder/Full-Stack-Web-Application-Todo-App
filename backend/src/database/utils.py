@@ -4,8 +4,8 @@ Database utility functions for the Full-Stack Multi-User Todo Web Application.
 from typing import Optional
 from sqlmodel import select
 from sqlalchemy.exc import IntegrityError
-from .models import User, Task
-from .db import get_session
+from models import User, Task
+from db import get_session
 
 
 async def get_user_by_email(email: str) -> Optional[User]:

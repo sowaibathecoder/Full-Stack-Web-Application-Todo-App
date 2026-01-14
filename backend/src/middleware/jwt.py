@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import Request, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
-from .config import settings
+from config import settings
 
 # JWT configuration
 SECRET_KEY = settings.better_auth_secret
