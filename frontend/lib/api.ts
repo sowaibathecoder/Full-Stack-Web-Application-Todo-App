@@ -13,10 +13,16 @@ async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  // Get the token from localStorage where Better Auth stores it
-  const token = typeof window !== 'undefined'
-    ? localStorage.getItem('better-auth-session-token')
-    : null;
+  // Use Better Auth client to get session headers
+  // We'll get the token from Better Auth's getSession method instead of localStorage
+  let token = null;
+  try {
+    const sessionData = await auth.getSession();
+    // Extract the token from Better Auth session if available
+    token = sessionData?.token || sessionData?.accessToken || sessionData?.data?.token;
+  } catch (error) {
+    console.warn('Could not get session from Better Auth:', error);
+  }
 
   const config: RequestInit = {
     headers: {
@@ -33,10 +39,7 @@ async function apiRequest<T>(
     const errorData = await response.json().catch(() => ({}));
     // Handle specific error codes
     if (response.status === 401) {
-      // Redirect to login if unauthorized
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
-      }
+      // Don't redirect here - let the calling component handle unauthorized errors
       throw new Error('Session expired. Please log in again.');
     }
     throw new Error(errorData.detail || `HTTP error! Status: ${response.status}`);
