@@ -108,7 +108,6 @@ coverage/
 .nyc_output/
 .jest/
 jest/
-jest.config.js
 coverage/
 .nyc_output/
 tmpclaude-*.cwd
