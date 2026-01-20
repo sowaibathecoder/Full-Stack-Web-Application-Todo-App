@@ -3,8 +3,10 @@
  */
 import { TaskRead, TaskCreate, TaskUpdate } from '../types/tasks';
 import { auth } from './auth';
+import { rateLimitCall } from '../utils/rateLimiter';
+import { verifyRequestOrigin } from '../utils/security';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 /**
  * Base API request function that handles authentication and common configurations.
@@ -16,25 +18,42 @@ async function apiRequest<T>(
   // Use Better Auth client to get session headers
   // We'll get the token from Better Auth's getSession method instead of localStorage
   let token = null;
+  let userId = null;
+
   try {
     const sessionData = await auth.getSession();
     // Extract the token from Better Auth session if available
     // Better Auth stores session data in the data property
     token = sessionData?.data?.session?.token || sessionData?.data?.session?.id;
+    userId = sessionData?.data?.user?.id;
+
+    // Additional validation to ensure we have proper authentication
+    if (!sessionData?.data?.session) {
+      throw new Error('No active session found');
+    }
   } catch (error) {
     console.warn('Could not get session from Better Auth:', error);
+    // Don't throw immediately - let the server handle unauthenticated requests
   }
 
   const config: RequestInit = {
     headers: {
       'Content-Type': 'application/json',
+      // Only add authorization header if we have a valid token
       ...(token && { 'Authorization': `Bearer ${token}` }),
       ...options.headers,
     },
+    credentials: 'include', // This ensures cookies are sent with requests
     ...options,
   };
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+  // Verify that the request is going to our API endpoint to prevent SSRF attacks
+  const fullUrl = `${API_BASE_URL}${endpoint}`;
+  if (!verifyRequestOrigin(fullUrl)) {
+    throw new Error('Invalid API endpoint');
+  }
+
+  const response = await fetch(fullUrl, config);
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
@@ -42,8 +61,23 @@ async function apiRequest<T>(
     if (response.status === 401) {
       // Don't redirect here - let the calling component handle unauthorized errors
       throw new Error('Session expired. Please log in again.');
+    } else if (response.status === 403) {
+      throw new Error('Access denied. You do not have permission to perform this action.');
+    } else if (response.status === 404) {
+      throw new Error('Resource not found.');
+    } else if (response.status >= 500) {
+      // For server errors, don't expose internal details
+      throw new Error('Server error. Please try again later.');
+    } else {
+      // For other errors, try to provide a user-friendly message
+      const errorMessage = errorData.detail || errorData.message || `Request failed with status ${response.status}`;
+      // Only show the actual error message in development
+      if (process.env.NODE_ENV === 'development') {
+        throw new Error(errorMessage);
+      } else {
+        throw new Error('An error occurred while processing your request. Please try again.');
+      }
     }
-    throw new Error(errorData.detail || `HTTP error! Status: ${response.status}`);
   }
 
   // For DELETE requests, there's typically no response body
@@ -74,74 +108,88 @@ export const taskApi = {
   /**
    * Get all tasks for the authenticated user
    */
-  getTasks: (params?: GetTasksParams): Promise<TaskRead[]> => {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          queryParams.append(key, String(value));
-        }
-      });
-    }
+  getTasks: async (params?: GetTasksParams): Promise<TaskRead[]> => {
+    return rateLimitCall('api_tasks_get', () => {
+      const queryParams = new URLSearchParams();
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            queryParams.append(key, String(value));
+          }
+        });
+      }
 
-    const queryString = queryParams.toString();
-    const endpoint = `/tasks${queryString ? `?${queryString}` : ''}`;
+      const queryString = queryParams.toString();
+      const endpoint = `/tasks${queryString ? `?${queryString}` : ''}`;
 
-    return apiRequest<TaskRead[]>(endpoint);
+      return apiRequest<TaskRead[]>(endpoint);
+    });
   },
 
   /**
    * Get a specific task by ID
    */
-  getTask: (id: number): Promise<TaskRead> => {
-    return apiRequest<TaskRead>(`/tasks/${id}`);
+  getTask: async (id: number): Promise<TaskRead> => {
+    return rateLimitCall(`api_task_get_${id}`, () => {
+      return apiRequest<TaskRead>(`/tasks/${id}`);
+    });
   },
 
   /**
    * Create a new task
    */
-  createTask: (taskData: TaskCreate): Promise<TaskRead> => {
-    return apiRequest<TaskRead>('/tasks', {
-      method: 'POST',
-      body: JSON.stringify(taskData),
+  createTask: async (taskData: TaskCreate): Promise<TaskRead> => {
+    return rateLimitCall('api_task_create', () => {
+      return apiRequest<TaskRead>('/tasks', {
+        method: 'POST',
+        body: JSON.stringify(taskData),
+      });
     });
   },
 
   /**
    * Update an existing task
    */
-  updateTask: (id: number, taskData: TaskUpdate): Promise<TaskRead> => {
-    return apiRequest<TaskRead>(`/tasks/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(taskData),
+  updateTask: async (id: number, taskData: TaskUpdate): Promise<TaskRead> => {
+    return rateLimitCall(`api_task_update_${id}`, () => {
+      return apiRequest<TaskRead>(`/tasks/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(taskData),
+      });
     });
   },
 
   /**
    * Partially update a task
    */
-  patchTask: (id: number, taskData: Partial<TaskUpdate>): Promise<TaskRead> => {
-    return apiRequest<TaskRead>(`/tasks/${id}`, {
-      method: 'PATCH',
-      body: JSON.stringify(taskData),
+  patchTask: async (id: number, taskData: Partial<TaskUpdate>): Promise<TaskRead> => {
+    return rateLimitCall(`api_task_patch_${id}`, () => {
+      return apiRequest<TaskRead>(`/tasks/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(taskData),
+      });
     });
   },
 
   /**
    * Delete a task
    */
-  deleteTask: (id: number): Promise<void> => {
-    return apiRequest<void>(`/tasks/${id}`, {
-      method: 'DELETE',
+  deleteTask: async (id: number): Promise<void> => {
+    return rateLimitCall(`api_task_delete_${id}`, () => {
+      return apiRequest<void>(`/tasks/${id}`, {
+        method: 'DELETE',
+      });
     });
   },
 
   /**
    * Toggle task completion status
    */
-  toggleTaskCompletion: (id: number): Promise<TaskRead> => {
-    return apiRequest<TaskRead>(`/tasks/${id}/complete`, {
-      method: 'PATCH',
+  toggleTaskCompletion: async (id: number): Promise<TaskRead> => {
+    return rateLimitCall(`api_task_toggle_${id}`, () => {
+      return apiRequest<TaskRead>(`/tasks/${id}/complete`, {
+        method: 'PATCH',
+      });
     });
   },
 };

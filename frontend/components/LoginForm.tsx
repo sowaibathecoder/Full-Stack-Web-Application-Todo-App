@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { getRedirectUrl, clearRedirectUrl } from '@/utils/redirect';
 
 export const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -14,18 +15,45 @@ export const LoginForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Basic validation
+    if (!email || !password) {
+      setError('Email and password are required');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    // Basic password validation
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
+      // Get the redirect URL before attempting to sign in
+      const redirectUrl = getRedirectUrl('/');
+
       const result = await signIn.email({
         email,
         password,
-        redirectTo: '/',
+        redirectTo: redirectUrl,
       });
 
       if (result.error) {
         setError(result.error.message || 'Login failed');
+      } else {
+        // Clear the redirect URL after successful login
+        clearRedirectUrl();
+        // The user will be redirected by Better Auth to the redirectUrl
       }
     } catch (err) {
       setError('An unexpected error occurred');

@@ -33,6 +33,18 @@ export const metadata = {
   },
 };
 
+const Footer = () => {
+  return (
+    <footer className="bg-white mt-8 border-t">
+      <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+        <p className="text-center text-gray-500 text-sm">
+          © {new Date().getFullYear()} Todo App. All rights reserved.
+        </p>
+      </div>
+    </footer>
+  );
+};
+
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
@@ -48,17 +60,5 @@ export default function RootLayout({ children }: RootLayoutProps) {
         </AuthProvider>
       </body>
     </html>
-  );
-}
-
-const Footer = () => {
-  return (
-    <footer className="bg-white mt-8 border-t">
-      <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-        <p className="text-center text-gray-500 text-sm">
-          © {new Date().getFullYear()} Todo App. All rights reserved.
-        </p>
-      </div>
-    </footer>
   );
 };

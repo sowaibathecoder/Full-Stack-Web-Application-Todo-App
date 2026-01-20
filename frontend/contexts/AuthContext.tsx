@@ -33,6 +33,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     const fetchSession = async () => {
       try {
+        setLoading(true);
         const sessionData = await auth.getSession();
         // Properly access the user from the session data
         setUser(sessionData?.data?.user || null);
@@ -45,13 +46,45 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
 
     fetchSession();
+
+    // Set up interval to periodically check session validity (every 5 minutes)
+    const interval = setInterval(async () => {
+      try {
+        const sessionData = await auth.getSession();
+        const currentUser = sessionData?.data?.user || null;
+
+        // Update user state if it has changed
+        if ((currentUser && !user) || (!currentUser && user) ||
+            (currentUser?.id !== user?.id)) {
+          setUser(currentUser);
+        }
+      } catch (error) {
+        console.error('Error checking session in interval:', error);
+        // If session check fails, clear user state
+        setUser(null);
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    // Clean up interval on unmount
+    return () => clearInterval(interval);
   }, []);
 
   const signIn = auth.signIn;
   const signUp = auth.signUp;
   const signOut = async () => {
-    await auth.signOut();
-    setUser(null);
+    try {
+      await auth.signOut();
+      setUser(null);
+      // Clear any stored redirect URLs
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('redirectAfterLogin');
+      }
+    } catch (error) {
+      console.error('Error during sign out:', error);
+      // Still clear user state even if sign out fails
+      setUser(null);
+      sessionStorage.removeItem('redirectAfterLogin');
+    }
   };
 
   const getSession = auth.getSession;

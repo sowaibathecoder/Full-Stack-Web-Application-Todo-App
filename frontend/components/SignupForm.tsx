@@ -15,6 +15,32 @@ export const SignupForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Basic validation
+    if (!email || !password || !name) {
+      setError('All fields are required');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    // Basic password validation
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
+    // Basic name validation
+    if (name.trim().length < 2) {
+      setError('Name must be at least 2 characters');
+      return;
+    }
+
     setLoading(true);
     setError('');
 

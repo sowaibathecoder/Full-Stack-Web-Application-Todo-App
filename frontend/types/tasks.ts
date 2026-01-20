@@ -15,7 +15,7 @@ export interface TaskBase {
 
 export interface TaskCreate extends TaskBase {
   title: string;
-  user_id: string;
+  user_id?: string; // Will be set by backend from JWT
 }
 
 export interface TaskUpdate {

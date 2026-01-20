@@ -1,5 +1,6 @@
 import { TaskRead } from '@/types/tasks';
 import { taskApi } from '@/lib/api';
+import { sanitizeHTML } from '@/utils/sanitize';
 
 interface TaskItemProps {
   task: TaskRead;
@@ -10,8 +11,24 @@ interface TaskItemProps {
 
 export const TaskItem = ({ task, onToggle, onEdit, onDelete }: TaskItemProps) => {
   const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    if (!dateString) return '';
+
+    try {
+      // Parse the date string and check if it's valid
+      const date = new Date(dateString);
+
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid date received:', dateString);
+        return 'Invalid Date';
+      }
+
+      const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+      return date.toLocaleDateString(undefined, options);
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid Date';
+    }
   };
 
   const getPriorityColor = (priority: string | undefined) => {
@@ -27,7 +44,22 @@ export const TaskItem = ({ task, onToggle, onEdit, onDelete }: TaskItemProps) =>
     }
   };
 
-  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && !task.completed;
+  const isOverdue = task.due_date && (() => {
+    try {
+      const dueDate = new Date(task.due_date);
+      const currentDate = new Date();
+
+      // Check if dates are valid
+      if (isNaN(dueDate.getTime()) || isNaN(currentDate.getTime())) {
+        return false;
+      }
+
+      return dueDate < currentDate && !task.completed;
+    } catch (error) {
+      console.error('Error checking if task is overdue:', error);
+      return false;
+    }
+  })();
 
   const handleToggle = async () => {
     try {
@@ -52,7 +84,7 @@ export const TaskItem = ({ task, onToggle, onEdit, onDelete }: TaskItemProps) =>
         <div className="ml-3 flex-1">
           <div className="flex items-center justify-between">
             <p className={`text-sm font-medium ${task.completed ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
-              {task.title}
+              {sanitizeHTML(task.title)}
             </p>
             <div className="flex space-x-2">
               <button
@@ -78,7 +110,7 @@ export const TaskItem = ({ task, onToggle, onEdit, onDelete }: TaskItemProps) =>
 
           {task.description && (
             <p className={`mt-1 text-sm ${task.completed ? 'text-gray-400' : 'text-gray-600'}`}>
-              {task.description}
+              {sanitizeHTML(task.description)}
             </p>
           )}
 

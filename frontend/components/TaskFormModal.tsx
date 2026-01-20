@@ -3,6 +3,7 @@ import { TaskCreate, TaskUpdate, TaskRead } from '@/types/tasks';
 import { taskApi } from '@/lib/api';
 import { PrioritySelector } from './PrioritySelector';
 import { TagInput } from './TagInput';
+import { sanitizeTitle, sanitizeDescription, sanitizeTags, isValidDate } from '@/utils/sanitize';
 
 interface TaskFormModalProps {
   isOpen: boolean;
@@ -83,10 +84,44 @@ export const TaskFormModal = ({ isOpen, onClose, task, onSave }: TaskFormModalPr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Basic validation
+    // Comprehensive validation
     const newErrors: Record<string, string> = {};
+
+    // Title validation
     if (!formData.title?.trim()) {
       newErrors.title = 'Title is required';
+    } else if (formData.title.length > 200) {
+      newErrors.title = 'Title must be 200 characters or less';
+    }
+
+    // Description validation
+    if (formData.description && formData.description.length > 1000) {
+      newErrors.description = 'Description must be 1000 characters or less';
+    }
+
+    // Validate date if provided
+    if (formData.due_date && !isValidDate(formData.due_date)) {
+      newErrors.due_date = 'Invalid date format';
+    }
+
+    // Validate recurrence rule if task is recurring
+    if (formData.is_recurring && !formData.recurrence_rule) {
+      newErrors.recurrence_rule = 'Recurrence rule is required for recurring tasks';
+    }
+
+    // Validate recurrence rule format
+    if (formData.recurrence_rule && !['daily', 'weekly', 'monthly'].includes(formData.recurrence_rule)) {
+      newErrors.recurrence_rule = 'Invalid recurrence rule';
+    }
+
+    // Validate priority
+    if (formData.priority && !['low', 'medium', 'high'].includes(formData.priority)) {
+      newErrors.priority = 'Priority must be low, medium, or high';
+    }
+
+    // Validate tags
+    if (formData.tags && formData.tags.length > 10) {
+      newErrors.tags = 'Maximum 10 tags allowed';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -97,14 +132,23 @@ export const TaskFormModal = ({ isOpen, onClose, task, onSave }: TaskFormModalPr
     setLoading(true);
 
     try {
+      // Sanitize input data before sending to API
+      const sanitizedData = {
+        ...formData,
+        title: sanitizeTitle(formData.title as string),
+        description: sanitizeDescription(formData.description || ''),
+        tags: sanitizeTags(formData.tags || []),
+        due_date: formData.due_date || undefined
+      };
+
       let savedTask: TaskRead;
 
       if (isEditing && task) {
         // Update existing task
-        savedTask = await taskApi.updateTask(task.id, formData as TaskUpdate);
+        savedTask = await taskApi.updateTask(task.id, sanitizedData as TaskUpdate);
       } else {
-        // Create new task
-        savedTask = await taskApi.createTask(formData as TaskCreate);
+        // Create new task - user_id will be set by the backend from JWT
+        savedTask = await taskApi.createTask(sanitizedData as TaskCreate);
       }
 
       onSave(savedTask);
