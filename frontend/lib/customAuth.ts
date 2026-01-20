@@ -103,7 +103,7 @@ class CustomAuth {
     try {
       const token = localStorage.getItem('access_token');
       if (!token) {
-        return { data: { user: undefined, session: null } };
+        return { data: { user: undefined, session: undefined } };
       }
 
       // Verify token by fetching user profile
@@ -116,7 +116,7 @@ class CustomAuth {
       if (!response.ok) {
         // Token might be invalid/expired, remove it
         localStorage.removeItem('access_token');
-        return { data: { user: undefined, session: null } };
+        return { data: { user: undefined, session: undefined } };
       }
 
       const user: User = await response.json();
