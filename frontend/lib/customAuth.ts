@@ -1,0 +1,128 @@
+/**
+ * Custom authentication implementation to work with backend's auth system
+ */
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+}
+
+interface AuthResponse {
+  access_token: string;
+  token_type: 'bearer';
+}
+
+interface LoginCredentials {
+  username: string; // email
+  password: string;
+}
+
+interface RegisterData {
+  email: string;
+  password: string;
+  name: string;
+}
+
+class CustomAuth {
+  private API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
+  async login(credentials: LoginCredentials): Promise<{ error?: { message: string } }> {
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          username: credentials.username,
+          password: credentials.password,
+        }).toString(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const message = errorData.detail || 'Login failed';
+        return { error: { message } };
+      }
+
+      const data: AuthResponse = await response.json();
+
+      // Store token in localStorage (or use httpOnly cookies in production)
+      localStorage.setItem('access_token', data.access_token);
+
+      return {};
+    } catch (error) {
+      console.error('Login error:', error);
+      return { error: { message: 'An unexpected error occurred' } };
+    }
+  }
+
+  async register(userData: RegisterData): Promise<{ error?: { message: string } }> {
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const message = errorData.detail || 'Registration failed';
+        return { error: { message } };
+      }
+
+      const data: AuthResponse = await response.json();
+
+      // Store token in localStorage (or use httpOnly cookies in production)
+      localStorage.setItem('access_token', data.access_token);
+
+      return {};
+    } catch (error) {
+      console.error('Registration error:', error);
+      return { error: { message: 'An unexpected error occurred' } };
+    }
+  }
+
+  async getSession(): Promise<{ data?: { user?: User; session?: { token: string } }; error?: any }> {
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        return { data: { user: null, session: null } };
+      }
+
+      // Verify token by fetching user profile
+      const response = await fetch(`${this.API_BASE_URL}/auth/profile`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        // Token might be invalid/expired, remove it
+        localStorage.removeItem('access_token');
+        return { data: { user: null, session: null } };
+      }
+
+      const user: User = await response.json();
+
+      return {
+        data: {
+          user,
+          session: { token }
+        }
+      };
+    } catch (error) {
+      console.error('Session error:', error);
+      return { error };
+    }
+  }
+
+  async signOut(): Promise<void> {
+    localStorage.removeItem('access_token');
+  }
+}
+
+export const customAuth = new CustomAuth();

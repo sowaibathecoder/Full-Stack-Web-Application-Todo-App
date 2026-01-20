@@ -1,9 +1,4 @@
-import { createAuthClient } from "better-auth/react";
-import { jwt } from "better-auth/plugins";
+import { customAuth } from "./customAuth";
 
-export const auth = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000",
-  plugins: [
-    jwt(),
-  ],
-});
+// Export the custom auth implementation to match the Better Auth interface
+export const auth = customAuth;

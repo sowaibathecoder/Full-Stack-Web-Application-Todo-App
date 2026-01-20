@@ -11,7 +11,9 @@ class Settings(BaseSettings):
 
     # JWT/Authentication settings
     better_auth_secret: str = "your-better-auth-secret-here"  # Should be set in environment
+    auth_secret: str = "your-better-auth-secret-here"  # For backward compatibility
     access_token_expire_minutes: int = 10080  # 7 days
+    jwt_algorithm: str = "HS256"
 
     # Application settings
     environment: str = "development"

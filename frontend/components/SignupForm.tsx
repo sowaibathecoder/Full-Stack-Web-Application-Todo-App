@@ -45,15 +45,17 @@ export const SignupForm = () => {
     setError('');
 
     try {
-      const result = await signUp.email({
+      const result = await signUp({
         email,
         password,
         name,
-        redirectTo: '/login',
       });
 
       if (result.error) {
         setError(result.error.message || 'Sign up failed');
+      } else {
+        // Redirect to login after successful signup
+        router.push('/login');
       }
     } catch (err) {
       setError('An unexpected error occurred');

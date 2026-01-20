@@ -32,7 +32,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
     encoded_jwt = jwt.encode(
         to_encode,
-        settings.auth_secret,
+        settings.better_auth_secret,
         algorithm=settings.jwt_algorithm
     )
 
@@ -53,7 +53,7 @@ async def get_current_user_id(
         # Decode the token to extract user information
         payload = jwt.decode(
             token,
-            settings.auth_secret,
+            settings.better_auth_secret,
             algorithms=[settings.jwt_algorithm]
         )
 

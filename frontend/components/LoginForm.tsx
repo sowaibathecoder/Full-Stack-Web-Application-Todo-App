@@ -42,10 +42,9 @@ export const LoginForm = () => {
       // Get the redirect URL before attempting to sign in
       const redirectUrl = getRedirectUrl('/');
 
-      const result = await signIn.email({
-        email,
+      const result = await signIn({
+        username: email,
         password,
-        redirectTo: redirectUrl,
       });
 
       if (result.error) {
@@ -53,7 +52,8 @@ export const LoginForm = () => {
       } else {
         // Clear the redirect URL after successful login
         clearRedirectUrl();
-        // The user will be redirected by Better Auth to the redirectUrl
+        // Redirect manually since we're not using Better Auth's redirectTo
+        router.push(redirectUrl);
       }
     } catch (err) {
       setError('An unexpected error occurred');
