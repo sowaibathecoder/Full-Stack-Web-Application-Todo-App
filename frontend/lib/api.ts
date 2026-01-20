@@ -22,17 +22,17 @@ async function apiRequest<T>(
 
   try {
     const sessionData = await auth.getSession();
-    // Extract the token from Better Auth session if available
-    // Better Auth stores session data in the data property
-    token = sessionData?.data?.session?.token || sessionData?.data?.session?.id;
+    // Extract the token from the session data
+    // Our custom auth stores the token directly in session.token
+    token = sessionData?.data?.session?.token;
     userId = sessionData?.data?.user?.id;
 
     // Additional validation to ensure we have proper authentication
-    if (!sessionData?.data?.session) {
+    if (!sessionData?.data?.session || !token) {
       throw new Error('No active session found');
     }
   } catch (error) {
-    console.warn('Could not get session from Better Auth:', error);
+    console.warn('Could not get session from auth system:', error);
     // Don't throw immediately - let the server handle unauthenticated requests
   }
 
