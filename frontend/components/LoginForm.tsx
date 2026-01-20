@@ -42,9 +42,10 @@ export const LoginForm = () => {
       // Get the redirect URL before attempting to sign in
       const redirectUrl = getRedirectUrl('/');
 
-      const result = await signIn({
-        username: email,
+      const result = await signIn.email({
+        email,
         password,
+        redirectTo: redirectUrl,
       });
 
       if (result.error) {

@@ -45,10 +45,11 @@ export const SignupForm = () => {
     setError('');
 
     try {
-      const result = await signUp({
+      const result = await signUp.email({
         email,
         password,
         name,
+        redirectTo: '/login',
       });
 
       if (result.error) {

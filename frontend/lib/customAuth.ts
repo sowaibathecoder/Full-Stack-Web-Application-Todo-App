@@ -27,6 +27,19 @@ interface RegisterData {
 class CustomAuth {
   private API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
+  // Better Auth compatible interface methods
+  signIn = {
+    email: async (credentials: { email: string; password: string; redirectTo?: string }): Promise<{ error?: { message: string } }> => {
+      return this.login({ username: credentials.email, password: credentials.password });
+    }
+  };
+
+  signUp = {
+    email: async (userData: { email: string; password: string; name: string; redirectTo?: string }): Promise<{ error?: { message: string } }> => {
+      return this.register({ email: userData.email, password: userData.password, name: userData.name });
+    }
+  };
+
   async login(credentials: LoginCredentials): Promise<{ error?: { message: string } }> {
     try {
       const response = await fetch(`${this.API_BASE_URL}/auth/login`, {

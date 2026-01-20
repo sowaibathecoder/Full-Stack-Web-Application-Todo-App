@@ -6,8 +6,12 @@ import { auth } from '@/lib/auth';
 interface AuthContextType {
   user: any;
   loading: boolean;
-  signIn: any;
-  signUp: any;
+  signIn: {
+    email: (credentials: { email: string; password: string; redirectTo?: string }) => Promise<{ error?: { message: string } }>;
+  };
+  signUp: {
+    email: (userData: { email: string; password: string; name: string; redirectTo?: string }) => Promise<{ error?: { message: string } }>;
+  };
   signOut: any;
   getSession: any;
 }
