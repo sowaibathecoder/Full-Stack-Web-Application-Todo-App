@@ -38,7 +38,10 @@ def register_user(user_data: UserRegister, session: Session = Depends(get_sessio
             )
 
         # Validate password length for bcrypt limitation (72 bytes max)
-        password_bytes = user_data.password.encode('utf-8')
+        # Clean the password first to remove any potential invisible characters
+        clean_password = user_data.password.strip()
+
+        password_bytes = clean_password.encode('utf-8')
         if len(password_bytes) > 72:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -46,7 +49,7 @@ def register_user(user_data: UserRegister, session: Session = Depends(get_sessio
             )
 
         # Hash the password
-        hashed_password = get_password_hash(user_data.password)
+        hashed_password = get_password_hash(clean_password)
 
         # Create new user with hashed password - ID will be auto-generated
         new_user = User(
@@ -88,7 +91,10 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), session: Sessio
     """
     try:
         # Validate password length for bcrypt limitation (72 bytes max) during login
-        password_bytes = form_data.password.encode('utf-8')
+        # Clean the password first to remove any potential invisible characters
+        clean_password = form_data.password.strip()
+
+        password_bytes = clean_password.encode('utf-8')
         if len(password_bytes) > 72:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -97,7 +103,7 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), session: Sessio
 
         # Find user by email
         user = session.exec(select(User).where(User.email == form_data.username)).first()
-        if not user or not verify_password(form_data.password, user.hashed_password):
+        if not user or not verify_password(clean_password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect email or password",

@@ -33,13 +33,22 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Verify a plain password against a hashed password.
     """
-    # Ensure the plain password is within bcrypt limits
-    if len(plain_password.encode('utf-8')) > 72:
-        # Truncate to 72 bytes if needed
-        truncated_bytes = plain_password.encode('utf-8')[:72]
-        plain_password = truncated_bytes.decode('utf-8', errors='ignore')
+    try:
+        # Ensure the plain password is within bcrypt limits
+        if len(plain_password.encode('utf-8')) > 72:
+            # Truncate to 72 bytes if needed
+            truncated_bytes = plain_password.encode('utf-8')[:72]
+            plain_password = truncated_bytes.decode('utf-8', errors='ignore')
 
-    return pwd_context.verify(plain_password, hashed_password)
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception as e:
+        # If there's an error during verification, try with truncated password anyway
+        if "password cannot be longer than 72 bytes" in str(e):
+            truncated_bytes = plain_password.encode('utf-8')[:72]
+            safe_password = truncated_bytes.decode('utf-8', errors='ignore')
+            return pwd_context.verify(safe_password, hashed_password)
+        else:
+            raise e
 
 
 def get_password_hash(password: str) -> str:
@@ -56,10 +65,12 @@ def get_password_hash(password: str) -> str:
             password = truncated_bytes.decode('utf-8', errors='ignore')
 
         return pwd_context.hash(password)
-    except ValueError as e:
-        # Handle bcrypt-specific errors
-        if "password cannot be longer than 72 bytes" in str(e):
-            # Double check the truncation
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Password hash error: {str(e)}, password length: {len(password.encode('utf-8'))} bytes")
+
+        # If the error is specifically about password length, try to truncate anyway
+        if "password cannot be longer than 72 bytes" in str(e) or len(password.encode('utf-8')) > 72:
             truncated_bytes = password.encode('utf-8')[:72]
             safe_password = truncated_bytes.decode('utf-8', errors='ignore')
             return pwd_context.hash(safe_password)
