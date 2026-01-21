@@ -17,7 +17,6 @@ sync_engine = create_engine(
     max_overflow=10,
     pool_pre_ping=True,
     pool_recycle=300,
-    connect_args={"ssl": True}
 )
 
 # Asynchronous engine for async operations
@@ -38,6 +37,11 @@ async_engine = create_async_engine(
     max_overflow=10,
     pool_pre_ping=True,
     pool_recycle=300,
+    connect_args={
+        "server_settings": {
+            "application_name": "todo-app",
+        }
+    }
 )
 
 
