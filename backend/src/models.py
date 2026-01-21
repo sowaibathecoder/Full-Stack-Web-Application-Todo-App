@@ -5,7 +5,6 @@ from datetime import datetime
 from typing import Optional, List
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text
-from sqlalchemy.sql import func
 from enum import Enum
 import uuid
 
@@ -28,7 +27,7 @@ class User(SQLModel, table=True):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True, max_length=36)
     email: str = Field(unique=True, nullable=False, max_length=255)
     name: Optional[str] = Field(default=None, max_length=255)
-    hashed_password: str = Field(nullable=False, max_length=255)  # Add password field
+    hashed_password: str = Field(nullable=False, max_length=128)  # bcrypt hash length
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     # Relationship to tasks

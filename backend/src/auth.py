@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from .config import settings
 
 # Security configuration
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
 security = HTTPBearer()
 
 # JWT token configuration
@@ -33,14 +33,38 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Verify a plain password against a hashed password.
     """
+    # Ensure the plain password is within bcrypt limits
+    if len(plain_password.encode('utf-8')) > 72:
+        # Truncate to 72 bytes if needed
+        truncated_bytes = plain_password.encode('utf-8')[:72]
+        plain_password = truncated_bytes.decode('utf-8', errors='ignore')
+
     return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
     """
     Generate a hash for a plain password.
+    Bcrypt has a maximum length of 72 bytes, so we truncate if necessary.
     """
-    return pwd_context.hash(password)
+    try:
+        # Bcrypt has a 72-byte limit, so we need to handle long passwords
+        if len(password.encode('utf-8')) > 72:
+            # Truncate to 72 bytes while preserving as much of the original password as possible
+            # We'll decode back to string to ensure we don't cut in the middle of a multi-byte character
+            truncated_bytes = password.encode('utf-8')[:72]
+            password = truncated_bytes.decode('utf-8', errors='ignore')
+
+        return pwd_context.hash(password)
+    except ValueError as e:
+        # Handle bcrypt-specific errors
+        if "password cannot be longer than 72 bytes" in str(e):
+            # Double check the truncation
+            truncated_bytes = password.encode('utf-8')[:72]
+            safe_password = truncated_bytes.decode('utf-8', errors='ignore')
+            return pwd_context.hash(safe_password)
+        else:
+            raise e
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):

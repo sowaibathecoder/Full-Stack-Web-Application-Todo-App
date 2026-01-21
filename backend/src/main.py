@@ -33,7 +33,7 @@ def create_app() -> FastAPI:
 
     # Create database tables on startup
     @app.on_event("startup")
-    def on_startup():
+    async def on_startup():
         create_db_and_tables()
 
     # Include API routes

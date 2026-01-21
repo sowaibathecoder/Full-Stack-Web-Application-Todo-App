@@ -7,7 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.pool import QueuePool
 from .config import settings
-from .models import User, Task  # Import all models to register them
+from .models import User, Task  # Import all models to register them with SQLModel
 
 # Synchronous engine for sync operations
 sync_engine = create_engine(
@@ -23,12 +23,12 @@ sync_engine = create_engine(
 def get_async_database_url():
     """Convert sync database URL to async format."""
     db_url = settings.database_url
+    # Replace postgresql:// with postgresql+asyncpg:// for async operations
     if db_url.startswith("postgresql://"):
         return db_url.replace("postgresql://", "postgresql+asyncpg://")
-    elif db_url.startswith("postgres://"):  # Alternative format
+    elif db_url.startswith("postgres://"):
         return db_url.replace("postgres://", "postgresql+asyncpg://")
     else:
-        # Assume it's already in the right format or handle as needed
         return db_url
 
 async_engine = create_async_engine(
@@ -37,11 +37,6 @@ async_engine = create_async_engine(
     max_overflow=10,
     pool_pre_ping=True,
     pool_recycle=300,
-    connect_args={
-        "server_settings": {
-            "application_name": "todo-app",
-        }
-    }
 )
 
 
@@ -50,7 +45,12 @@ def create_db_and_tables():
     Create database tables synchronously.
     This function creates all tables defined in the models.
     """
-    SQLModel.metadata.create_all(sync_engine)
+    try:
+        SQLModel.metadata.create_all(sync_engine)
+        print("Database tables created successfully")
+    except Exception as e:
+        print(f"Error creating database tables: {e}")
+        raise
 
 
 async def create_db_and_tables_async():
@@ -58,8 +58,13 @@ async def create_db_and_tables_async():
     Create database tables asynchronously.
     This function creates all tables defined in the models.
     """
-    async with async_engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
+    try:
+        async with async_engine.begin() as conn:
+            await conn.run_sync(SQLModel.metadata.create_all)
+        print("Database tables created successfully (async)")
+    except Exception as e:
+        print(f"Error creating database tables (async): {e}")
+        raise
 
 
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:

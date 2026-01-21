@@ -35,6 +35,13 @@ export const SignupForm = () => {
       return;
     }
 
+    // Check bcrypt limitation - passwords should not exceed 72 bytes
+    const encoder = new TextEncoder();
+    if (encoder.encode(password).length > 72) {
+      setError('Password must be 72 bytes or less');
+      return;
+    }
+
     // Basic name validation
     if (name.trim().length < 2) {
       setError('Name must be at least 2 characters');
