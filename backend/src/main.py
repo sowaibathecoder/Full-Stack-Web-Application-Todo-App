@@ -7,6 +7,8 @@ from .routes import router as api_router
 from .config import settings
 
 
+from .db import create_db_and_tables_async
+
 def create_app() -> FastAPI:
     """
     Create and configure the FastAPI application.
@@ -28,6 +30,11 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # Create database tables on startup
+    @app.on_event("startup")
+    async def on_startup():
+        await create_db_and_tables_async()
 
     # Include API routes
     app.include_router(api_router, prefix="/api", tags=["tasks"])

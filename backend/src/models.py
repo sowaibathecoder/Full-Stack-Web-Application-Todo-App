@@ -5,7 +5,9 @@ from datetime import datetime
 from typing import Optional, List
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text
+from sqlalchemy.sql import func
 from enum import Enum
+import uuid
 
 
 class TaskPriority(str, Enum):
@@ -23,7 +25,7 @@ class User(SQLModel, table=True):
     """
     User model representing application users.
     """
-    id: str = Field(default=None, primary_key=True)
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True, max_length=36)
     email: str = Field(unique=True, nullable=False, max_length=255)
     name: Optional[str] = Field(default=None, max_length=255)
     hashed_password: str = Field(nullable=False, max_length=255)  # Add password field

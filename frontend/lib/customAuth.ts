@@ -54,9 +54,16 @@ class CustomAuth {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const message = errorData.detail || 'Login failed';
-        return { error: { message } };
+        let errorMessage = 'Login failed';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.detail || errorData.message || `HTTP error! status: ${response.status}`;
+        } catch (parseError) {
+          errorMessage = `HTTP error! status: ${response.status}`;
+        }
+
+        console.error('Login error response:', response.status, errorMessage);
+        return { error: { message: errorMessage } };
       }
 
       const data: AuthResponse = await response.json();
@@ -66,8 +73,8 @@ class CustomAuth {
 
       return {};
     } catch (error) {
-      console.error('Login error:', error);
-      return { error: { message: 'An unexpected error occurred' } };
+      console.error('Login network error:', error);
+      return { error: { message: `Network error: ${error instanceof Error ? error.message : 'Unknown error'}` } };
     }
   }
 
@@ -82,9 +89,16 @@ class CustomAuth {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const message = errorData.detail || 'Registration failed';
-        return { error: { message } };
+        let errorMessage = 'Registration failed';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.detail || errorData.message || `HTTP error! status: ${response.status}`;
+        } catch (parseError) {
+          errorMessage = `HTTP error! status: ${response.status}`;
+        }
+
+        console.error('Registration error response:', response.status, errorMessage);
+        return { error: { message: errorMessage } };
       }
 
       const data: AuthResponse = await response.json();
@@ -94,8 +108,8 @@ class CustomAuth {
 
       return {};
     } catch (error) {
-      console.error('Registration error:', error);
-      return { error: { message: 'An unexpected error occurred' } };
+      console.error('Registration network error:', error);
+      return { error: { message: `Network error: ${error instanceof Error ? error.message : 'Unknown error'}` } };
     }
   }
 

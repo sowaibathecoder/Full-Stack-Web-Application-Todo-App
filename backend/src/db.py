@@ -17,11 +17,23 @@ sync_engine = create_engine(
     max_overflow=10,
     pool_pre_ping=True,
     pool_recycle=300,
+    connect_args={"ssl": True}
 )
 
 # Asynchronous engine for async operations
+def get_async_database_url():
+    """Convert sync database URL to async format."""
+    db_url = settings.database_url
+    if db_url.startswith("postgresql://"):
+        return db_url.replace("postgresql://", "postgresql+asyncpg://")
+    elif db_url.startswith("postgres://"):  # Alternative format
+        return db_url.replace("postgres://", "postgresql+asyncpg://")
+    else:
+        # Assume it's already in the right format or handle as needed
+        return db_url
+
 async_engine = create_async_engine(
-    settings.database_url.replace("postgresql://", "postgresql+asyncpg://"),
+    get_async_database_url(),
     pool_size=5,
     max_overflow=10,
     pool_pre_ping=True,

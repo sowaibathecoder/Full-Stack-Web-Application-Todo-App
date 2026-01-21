@@ -28,36 +28,49 @@ def register_user(user_data: UserRegister, session: Session = Depends(get_sessio
     """
     Register a new user and return an access token.
     """
-    # Check if user already exists
-    existing_user = session.exec(select(User).where(User.email == user_data.email)).first()
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User with this email already exists"
+    try:
+        # Check if user already exists
+        existing_user = session.exec(select(User).where(User.email == user_data.email)).first()
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="User with this email already exists"
+            )
+
+        # Hash the password
+        hashed_password = get_password_hash(user_data.password)
+
+        # Create new user with hashed password - ID will be auto-generated
+        new_user = User(
+            email=user_data.email,
+            name=user_data.name,
+            hashed_password=hashed_password
         )
 
-    # Hash the password
-    hashed_password = get_password_hash(user_data.password)
+        session.add(new_user)
+        session.commit()
+        # Refresh to get the generated ID
+        session.refresh(new_user)
 
-    # Create new user with hashed password
-    new_user = User(
-        email=user_data.email,
-        name=user_data.name,
-        hashed_password=hashed_password
-    )
+        # Create access token
+        access_token_expires = timedelta(minutes=10080)  # 7 days
+        access_token = create_access_token(
+            data={"sub": new_user.id},
+            expires_delta=access_token_expires
+        )
 
-    session.add(new_user)
-    session.commit()
-    session.refresh(new_user)
-
-    # Create access token
-    access_token_expires = timedelta(minutes=10080)  # 7 days
-    access_token = create_access_token(
-        data={"sub": new_user.id},
-        expires_delta=access_token_expires
-    )
-
-    return {"access_token": access_token, "token_type": "bearer"}
+        return {"access_token": access_token, "token_type": "bearer"}
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 400 for existing user)
+        raise
+    except Exception as e:
+        # Log the error for debugging (in a real app, use proper logging)
+        print(f"Registration error: {str(e)}")
+        # Raise a generic 500 error
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Registration failed: {str(e)}"
+        )
 
 
 @router.post("/login", response_model=Token)
@@ -65,23 +78,35 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), session: Sessio
     """
     Authenticate user and return an access token.
     """
-    # Find user by email
-    user = session.exec(select(User).where(User.email == form_data.username)).first()
-    if not user or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
+    try:
+        # Find user by email
+        user = session.exec(select(User).where(User.email == form_data.username)).first()
+        if not user or not verify_password(form_data.password, user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        # Create access token
+        access_token_expires = timedelta(minutes=10080)  # 7 days
+        access_token = create_access_token(
+            data={"sub": user.id},
+            expires_delta=access_token_expires
         )
 
-    # Create access token
-    access_token_expires = timedelta(minutes=10080)  # 7 days
-    access_token = create_access_token(
-        data={"sub": user.id},
-        expires_delta=access_token_expires
-    )
-
-    return {"access_token": access_token, "token_type": "bearer"}
+        return {"access_token": access_token, "token_type": "bearer"}
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Login error: {str(e)}")
+        # Raise a generic 500 error
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Login failed: {str(e)}"
+        )
 
 
 @router.get("/profile")
@@ -89,11 +114,23 @@ def get_profile(current_user_id: str = Depends(get_current_user_id), session: Se
     """
     Get current user profile information.
     """
-    user = session.exec(select(User).where(User.id == current_user_id)).first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
+    try:
+        user = session.exec(select(User).where(User.id == current_user_id)).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
 
-    return user
+        return user
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Profile error: {str(e)}")
+        # Raise a generic 500 error
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Profile retrieval failed: {str(e)}"
+        )
