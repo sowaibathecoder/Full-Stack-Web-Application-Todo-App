@@ -41,13 +41,6 @@ def register_user(user_data: UserRegister, session: Session = Depends(get_sessio
         # Clean the password first to remove any potential invisible characters
         clean_password = user_data.password.strip()
 
-        password_bytes = clean_password.encode('utf-8')
-        if len(password_bytes) > 72:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Password must be 72 bytes or less"
-            )
-
         # Hash the password
         hashed_password = get_password_hash(clean_password)
 
