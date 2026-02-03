@@ -36,6 +36,14 @@ def register_user(user_data: UserRegister, session: Session = Depends(get_sessio
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="User with this email already exists"
             )
+        
+        # NEW: Password length validation (72 bytes max for bcrypt)
+        password_bytes = user_data.password.encode('utf-8')
+        if len(password_bytes) > 72:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Password cannot be longer than 72 bytes/characters (bcrypt limit). Shorten it."
+            )
 
         # Validate password length for bcrypt limitation (72 bytes max)
         # Clean the password first to remove any potential invisible characters
