@@ -98,8 +98,8 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), session: Sessio
         password_bytes = clean_password.encode('utf-8')
         if len(password_bytes) > 72:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Password must be 72 bytes or less"
+                status_code=400,
+                detail="Password cannot be longer than 72 bytes/characters (bcrypt limit). Shorten it."
             )
 
         # Find user by email
@@ -110,7 +110,7 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), session: Sessio
                 detail="Incorrect email or password",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-
+        
         # Create access token
         access_token_expires = timedelta(minutes=10080)  # 7 days
         access_token = create_access_token(

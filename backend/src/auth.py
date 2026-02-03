@@ -10,11 +10,9 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 from .config import settings
 
-# Security configuration
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
 security = HTTPBearer()
 
-# JWT token configuration
 SECRET_KEY = settings.better_auth_secret
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
@@ -30,29 +28,22 @@ class TokenData(BaseModel):
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """
-    Verify a plain password against a hashed password.
-    """
-    # Early reject long passwords
+    # Early reject – bcrypt max 72 bytes
     if len(plain_password.encode('utf-8')) > 72:
-        return False  # Safe – don't even try to verify
+        return False  # Don't even try – safe fail
 
     return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
-    """
-    Generate a hash for a plain password.
-    Bcrypt max 72 bytes – reject or truncate safely.
-    """
+    # Early reject – prevent crash
     password_bytes = password.encode('utf-8')
     if len(password_bytes) > 72:
         raise ValueError("Password cannot be longer than 72 bytes (bcrypt limit)")
 
-    # Truncate safely if exactly on boundary (rare)
-    safe_password = password_bytes[:72].decode('utf-8', errors='ignore')
-
-    return pwd_context.hash(safe_password)
+    # Safe truncate – use bytes directly (no decode needed)
+    safe_bytes = password_bytes[:72]
+    return pwd_context.hash(safe_bytes.decode('utf-8', errors='ignore'))
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
