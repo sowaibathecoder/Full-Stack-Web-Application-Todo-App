@@ -41,7 +41,7 @@ def register_user(user_data: UserRegister, session: Session = Depends(get_sessio
         password_bytes = user_data.password.encode('utf-8')
         if len(password_bytes) > 72:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=400,
                 detail="Password cannot be longer than 72 bytes/characters (bcrypt limit). Shorten it."
             )
 

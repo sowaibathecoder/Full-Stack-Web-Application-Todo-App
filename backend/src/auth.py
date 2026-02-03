@@ -33,55 +33,29 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Verify a plain password against a hashed password.
     """
-    try:
-        # Ensure the plain password is within bcrypt limits
-        if len(plain_password.encode('utf-8')) > 72:
-            # Truncate to 72 bytes if needed
-            truncated_bytes = plain_password.encode('utf-8')[:72]
-            plain_password = truncated_bytes.decode('utf-8', errors='ignore')
+    # Early reject long passwords
+    if len(plain_password.encode('utf-8')) > 72:
+        return False  # Safe – don't even try to verify
 
-        return pwd_context.verify(plain_password, hashed_password)
-    except Exception as e:
-        # If there's an error during verification, try with truncated password anyway
-        if "password cannot be longer than 72 bytes" in str(e):
-            truncated_bytes = plain_password.encode('utf-8')[:72]
-            safe_password = truncated_bytes.decode('utf-8', errors='ignore')
-            return pwd_context.verify(safe_password, hashed_password)
-        else:
-            raise e
+    return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
     """
     Generate a hash for a plain password.
-    Bcrypt has a maximum length of 72 bytes, so we truncate if necessary.
+    Bcrypt max 72 bytes – reject or truncate safely.
     """
-    try:
-        # Bcrypt has a 72-byte limit, so we need to handle long passwords
-        if len(password.encode('utf-8')) > 72:
-            # Truncate to 72 bytes while preserving as much of the original password as possible
-            # We'll decode back to string to ensure we don't cut in the middle of a multi-byte character
-            truncated_bytes = password.encode('utf-8')[:72]
-            password = truncated_bytes.decode('utf-8', errors='ignore')
+    password_bytes = password.encode('utf-8')
+    if len(password_bytes) > 72:
+        raise ValueError("Password cannot be longer than 72 bytes (bcrypt limit)")
 
-        return pwd_context.hash(password)
-    except Exception as e:
-        # Log the error for debugging
-        print(f"Password hash error: {str(e)}, password length: {len(password.encode('utf-8'))} bytes")
+    # Truncate safely if exactly on boundary (rare)
+    safe_password = password_bytes[:72].decode('utf-8', errors='ignore')
 
-        # If the error is specifically about password length, try to truncate anyway
-        if "password cannot be longer than 72 bytes" in str(e) or len(password.encode('utf-8')) > 72:
-            truncated_bytes = password.encode('utf-8')[:72]
-            safe_password = truncated_bytes.decode('utf-8', errors='ignore')
-            return pwd_context.hash(safe_password)
-        else:
-            raise e
+    return pwd_context.hash(safe_password)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    """
-    Create a JWT access token.
-    """
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -94,9 +68,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 
 def verify_token(token: str) -> Optional[TokenData]:
-    """
-    Verify a JWT token and return the user ID if valid.
-    """
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")
@@ -109,9 +80,6 @@ def verify_token(token: str) -> Optional[TokenData]:
 
 
 def get_current_user_id(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
-    """
-    Get the current user ID from the JWT token in the Authorization header.
-    """
     token = credentials.credentials
     token_data = verify_token(token)
 
