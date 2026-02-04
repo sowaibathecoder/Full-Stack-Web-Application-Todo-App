@@ -10,6 +10,19 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 from .config import settings
 
+# Configure bcrypt context with proper error handling for different environments
+import bcrypt
+
+# Check if bcrypt has the expected attributes, and patch if necessary
+if not hasattr(bcrypt, '__about__'):
+    # Create a mock __about__ module to satisfy passlib's version check
+    import types
+    bcrypt.__about__ = types.ModuleType('__about__')
+    try:
+        bcrypt.__about__.__version__ = getattr(bcrypt, '__version__', '4.0.0')  # Use a reasonable default
+    except AttributeError:
+        pass
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
 security = HTTPBearer()
 
@@ -46,7 +59,17 @@ def get_password_hash(password: str) -> str:
 
     # Safe truncate – use bytes directly (no decode needed)
     safe_bytes = password_bytes[:72]
-    return pwd_context.hash(safe_bytes.decode('utf-8', errors='ignore'))
+
+    try:
+        return pwd_context.hash(safe_bytes.decode('utf-8', errors='ignore'))
+    except Exception as e:
+        # Handle bcrypt compatibility issues in various environments
+        print(f"Warning: bcrypt hashing issue: {e}")
+        # Re-raise the exception to maintain proper error handling
+        raise HTTPException(
+            status_code=400,
+            detail="Password hashing error - please try again with a different password."
+        )
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
