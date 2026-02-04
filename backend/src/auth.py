@@ -39,7 +39,10 @@ def get_password_hash(password: str) -> str:
     # Early reject – prevent crash
     password_bytes = password.encode('utf-8')
     if len(password_bytes) > 72:
-        raise ValueError("Password cannot be longer than 72 bytes (bcrypt limit)")
+        raise HTTPException(
+            status_code=400,
+            detail="Password cannot be longer than 72 bytes/characters (bcrypt limit). Shorten it."
+        )
 
     # Safe truncate – use bytes directly (no decode needed)
     safe_bytes = password_bytes[:72]
