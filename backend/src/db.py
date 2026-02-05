@@ -7,11 +7,30 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.pool import QueuePool
 from .config import settings
-from .models import User, Task  # Import all models to register them with SQLModel
+from .models import User, Task  # Import models to register them with SQLModel metadata for table creation
+
+# Function to clean SSL parameters for different database drivers
+def get_clean_database_url(original_url: str) -> str:
+    """Remove SSL parameters that might cause issues with certain drivers."""
+    if '?sslmode=' in original_url or '&sslmode=' in original_url:
+        if '?' in original_url:
+            parts = original_url.split('?', 1)
+            main_url = parts[0]
+            params = parts[1]
+            filtered_params = []
+            for param in params.split('&'):
+                if not param.startswith(('sslmode=', 'sslcert=', 'sslkey=', 'sslrootcert=')):
+                    filtered_params.append(param)
+            if filtered_params:
+                return f"{main_url}?{'&'.join(filtered_params)}"
+            else:
+                return main_url
+    return original_url
 
 # Synchronous engine for sync operations
+clean_db_url = get_clean_database_url(settings.database_url)
 sync_engine = create_engine(
-    settings.database_url,
+    clean_db_url,
     poolclass=QueuePool,
     pool_size=5,
     max_overflow=10,
@@ -25,9 +44,41 @@ def get_async_database_url():
     db_url = settings.database_url
     # Replace postgresql:// with postgresql+asyncpg:// for async operations
     if db_url.startswith("postgresql://"):
-        return db_url.replace("postgresql://", "postgresql+asyncpg://")
+        # Remove SSL parameters that asyncpg may not support
+        base_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
+        # Remove sslmode and other SSL parameters if present
+        if '?sslmode=' in base_url or '&sslmode=' in base_url:
+            # Remove query parameters that may cause issues
+            if '?' in base_url:
+                parts = base_url.split('?', 1)
+                main_url = parts[0]
+                params = parts[1]
+                filtered_params = []
+                for param in params.split('&'):
+                    if not param.startswith(('sslmode=', 'sslcert=', 'sslkey=', 'sslrootcert=')):
+                        filtered_params.append(param)
+                if filtered_params:
+                    base_url = f"{main_url}?{'&'.join(filtered_params)}"
+                else:
+                    base_url = main_url
+        return base_url
     elif db_url.startswith("postgres://"):
-        return db_url.replace("postgres://", "postgresql+asyncpg://")
+        # Same treatment for postgres:// URLs
+        base_url = db_url.replace("postgres://", "postgresql+asyncpg://")
+        if '?sslmode=' in base_url or '&sslmode=' in base_url:
+            if '?' in base_url:
+                parts = base_url.split('?', 1)
+                main_url = parts[0]
+                params = parts[1]
+                filtered_params = []
+                for param in params.split('&'):
+                    if not param.startswith(('sslmode=', 'sslcert=', 'sslkey=', 'sslrootcert=')):
+                        filtered_params.append(param)
+                if filtered_params:
+                    base_url = f"{main_url}?{'&'.join(filtered_params)}"
+                else:
+                    base_url = main_url
+        return base_url
     else:
         return db_url
 
