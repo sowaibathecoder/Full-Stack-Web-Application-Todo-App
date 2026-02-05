@@ -50,7 +50,7 @@ export const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
       <div>
         <button
           type="button"
-          className="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+          className="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-2 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
           id="menu-button"
           aria-expanded={isOpen}
           aria-haspopup="true"
@@ -62,9 +62,11 @@ export const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
                 {user?.name ? user.name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase() || 'U'}
               </span>
             </div>
-            <span className="ml-2 truncate max-w-[100px]">{user?.name || user?.email || 'User'}</span>
+            {/* Show name on medium and larger screens, hide on small screens */}
+            <span className="ml-2 truncate max-w-[100px] hidden sm:block">{user?.name || user?.email || 'User'}</span>
+            {/* Show dropdown arrow - adjust margin based on screen size */}
             <svg
-              className={`-mr-1 h-5 w-5 text-gray-400 ml-1 ${isOpen ? 'rotate-180' : ''}`}
+              className={`-mr-1 h-5 w-5 text-gray-400 ${isOpen ? 'rotate-180' : ''} ${user?.name || user?.email ? 'ml-1 sm:ml-2' : 'ml-1'}`}
               viewBox="0 0 20 20"
               fill="currentColor"
               aria-hidden="true"
