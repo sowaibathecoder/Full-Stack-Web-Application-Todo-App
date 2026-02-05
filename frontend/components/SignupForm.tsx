@@ -11,7 +11,7 @@ export const SignupForm = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { signUp } = useAuth();
+  const { signUp, refreshSession } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,8 +63,11 @@ export const SignupForm = () => {
       if (result.error) {
         setError(result.error.message || 'Sign up failed');
       } else {
-        // Redirect to login after successful signup
-        router.push('/login');
+        // After successful signup, the token is stored but auth state needs to be refreshed
+        // Refresh the session to update the auth context immediately
+        await refreshSession();
+        // Now redirect to dashboard
+        router.push('/dashboard');
       }
     } catch (err) {
       setError('An unexpected error occurred');

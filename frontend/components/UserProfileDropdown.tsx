@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface UserProfileDropdownProps {
@@ -12,6 +13,7 @@ export const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const { user, signOut } = useAuth();
 
   // Close dropdown when clicking outside
@@ -32,6 +34,8 @@ export const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
     try {
       await signOut();
       setIsOpen(false);
+      // Redirect to welcome page after signing out
+      router.push('/welcome');
     } catch (error) {
       console.error('Error logging out:', error);
     }

@@ -11,7 +11,7 @@ export const LoginForm = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signIn, refreshSession } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,8 +61,10 @@ export const LoginForm = () => {
       } else {
         // Clear the redirect URL after successful login
         clearRedirectUrl();
-        // Redirect manually since we're not using Better Auth's redirectTo
-        router.push(redirectUrl);
+        // Refresh the session to update the auth context immediately
+        await refreshSession();
+        // After successful login, redirect to dashboard instead of staying on login page
+        router.push('/dashboard');
       }
     } catch (err) {
       setError('An unexpected error occurred');

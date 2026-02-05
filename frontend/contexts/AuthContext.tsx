@@ -14,6 +14,7 @@ interface AuthContextType {
   };
   signOut: any;
   getSession: any;
+  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -93,13 +94,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const getSession = auth.getSession;
 
+  // Function to manually refresh the session
+  const refreshSession = async () => {
+    try {
+      setLoading(true);
+      const sessionData = await auth.getSession();
+      setUser(sessionData?.data?.user || null);
+    } catch (error) {
+      console.error('Error refreshing session:', error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value = {
     user,
     loading,
     signIn,
     signUp,
     signOut,
-    getSession
+    getSession,
+    refreshSession
   };
 
   return (
