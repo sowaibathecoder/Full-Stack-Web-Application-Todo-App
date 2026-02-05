@@ -1,11 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { TaskList } from '@/components/TaskList';
-import { EmptyState } from '@/components/EmptyState';
-import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();

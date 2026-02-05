@@ -4,7 +4,7 @@ Database models for the Full-Stack Multi-User Todo Web Application.
 from datetime import datetime
 from typing import Optional, List
 from sqlmodel import SQLModel, Field, Relationship
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text
+from sqlalchemy import Column, String, DateTime, Boolean, Text
 from enum import Enum
 import uuid
 
@@ -50,7 +50,7 @@ class Task(SQLModel, table=True):
 
     # Intermediate features
     priority: Optional[str] = Field(sa_column=Column(String, index=True))  # Index for priority
-    tags: Optional[List[str]] = Field(default=None, sa_column=Column(Text))
+    tags: Optional[List[str]] = Field(default=None, sa_column=Column(Text))  # Store as JSON string
 
     # Advanced features
     due_date: Optional[datetime] = Field(

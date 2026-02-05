@@ -4,6 +4,7 @@ Task routes for the Full-Stack Multi-User Todo Web Application.
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlmodel import select
+from sqlalchemy import Text
 from ..models import Task
 from ..schemas.tasks import TaskRead, TaskCreate, TaskUpdate
 from ..dependencies.auth import get_current_user_id
@@ -19,9 +20,12 @@ async def get_tasks(
     session: AsyncSession = Depends(get_async_session),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, le=100),
-    status: Optional[str] = Query(None, description="Filter by status: 'completed', 'pending'"),
+    status: Optional[str] = Query(None, description="Filter by status: 'all', 'completed', 'pending'"),
     priority: Optional[str] = Query(None, description="Filter by priority: 'high', 'medium', 'low'"),
+    tag: Optional[str] = Query(None, description="Filter by tag"),
     search: Optional[str] = Query(None, description="Search in title and description"),
+    due_before: Optional[str] = Query(None, description="Filter by due date before (ISO format)"),
+    due_after: Optional[str] = Query(None, description="Filter by due date after (ISO format)"),
     sort: Optional[str] = Query("created_at", description="Sort by field: 'created_at', 'due_date', 'priority', 'title'"),
     order: Optional[str] = Query("desc", description="Sort order: 'asc' or 'desc'")
 ):
@@ -31,17 +35,27 @@ async def get_tasks(
     # Base query to get tasks for the current user only
     query = select(Task).where(Task.user_id == current_user_id)
 
-    # Apply filters
-    if status:
-        if status.lower() == "completed":
+    # Apply filters - check for non-empty, non-null values
+    if status and status.strip():
+        status_lower = status.lower()
+        if status_lower == "completed":
             query = query.where(Task.completed == True)
-        elif status.lower() == "pending":
+        elif status_lower == "pending":
             query = query.where(Task.completed == False)
+        # If status is "all" or any other value, don't apply status filter
 
-    if priority:
+    if priority and priority.strip():
         query = query.where(Task.priority == priority.lower())
 
-    if search:
+    # Tag filtering: handle tags stored as JSON string in Text column
+    if tag and tag.strip():
+        # Since tags are stored as JSON string, search for the tag within the JSON string
+        # Format might be like ["work", "important"] so we need to match the tag appropriately
+        # Use LIKE operator to search for the tag in the JSON string representation
+        escaped_tag = tag.replace("'", "''")  # Escape single quotes for SQL safety
+        query = query.where(Task.tags.is_not(None)).where(Task.tags.like(f'%{escaped_tag}%'))
+
+    if search and search.strip():
         from sqlalchemy import or_
         # Search in both title and description - SQLAlchemy handles NULLs properly
         query = query.where(
@@ -51,8 +65,28 @@ async def get_tasks(
             )
         )
 
+    # Apply due date filters - only if the value is not empty
+    if due_before and due_before.strip():
+        from datetime import datetime
+        try:
+            due_before_date = datetime.fromisoformat(due_before.replace('Z', '+00:00'))
+            query = query.where(Task.due_date <= due_before_date)
+        except ValueError:
+            # If the date format is invalid, ignore the filter
+            pass
+
+    if due_after and due_after.strip():
+        from datetime import datetime
+        try:
+            due_after_date = datetime.fromisoformat(due_after.replace('Z', '+00:00'))
+            query = query.where(Task.due_date >= due_after_date)
+        except ValueError:
+            # If the date format is invalid, ignore the filter
+            pass
+
     # Apply sorting
-    if hasattr(Task, sort):
+    valid_sort_fields = ['created_at', 'due_date', 'priority', 'title', 'updated_at', 'completed']
+    if sort in valid_sort_fields:
         sort_field = getattr(Task, sort)
         if order.lower() == "asc":
             query = query.order_by(sort_field.asc())
