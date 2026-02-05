@@ -37,7 +37,7 @@ def register_user(user_data: UserRegister, session: Session = Depends(get_sessio
                 detail="User with this email already exists"
             )
         
-        # Validate password length for bcrypt limitation (72 bytes max)
+        # Validate password length for security (to avoid bcrypt 72-byte limit)
         # Clean the password first to remove any potential invisible characters
         clean_password = user_data.password.strip()
 
@@ -45,7 +45,7 @@ def register_user(user_data: UserRegister, session: Session = Depends(get_sessio
         if len(password_bytes) > 72:
             raise HTTPException(
                 status_code=400,
-                detail="Password cannot be longer than 72 bytes/characters (bcrypt limit). Shorten it."
+                detail="Password cannot be longer than 72 bytes. Please use a shorter password."
             )
 
         # Hash the password
@@ -90,7 +90,7 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), session: Sessio
     Authenticate user and return an access token.
     """
     try:
-        # Validate password length for bcrypt limitation (72 bytes max) during login
+        # Validate password length for security (to avoid bcrypt 72-byte limit)
         # Clean the password first to remove any potential invisible characters
         clean_password = form_data.password.strip()
 
@@ -98,7 +98,7 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), session: Sessio
         if len(password_bytes) > 72:
             raise HTTPException(
                 status_code=400,
-                detail="Password cannot be longer than 72 bytes/characters (bcrypt limit). Shorten it."
+                detail="Password cannot be longer than 72 bytes. Please use a shorter password."
             )
 
         # Find user by email

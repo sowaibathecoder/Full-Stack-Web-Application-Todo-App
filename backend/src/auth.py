@@ -10,20 +10,16 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 from .config import settings
 
-# Configure bcrypt context with proper error handling for different environments
-import bcrypt
-
-# Check if bcrypt has the expected attributes, and patch if necessary
-if not hasattr(bcrypt, '__about__'):
-    # Create a mock __about__ module to satisfy passlib's version check
-    import types
-    bcrypt.__about__ = types.ModuleType('__about__')
-    try:
-        bcrypt.__about__.__version__ = getattr(bcrypt, '__version__', '4.0.0')  # Use a reasonable default
-    except AttributeError:
-        pass
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
+# Configure password hashing context with multiple schemes for compatibility
+# Use argon2 as primary with pbkdf2 fallback (removed bcrypt-related schemes)
+pwd_context = CryptContext(
+    schemes=["argon2", "pbkdf2_sha256"],
+    deprecated="auto",
+    argon2__rounds=10,
+    argon2__memory_cost=102400,  # 100MB
+    argon2__parallelism=1,
+    pbkdf2_sha256__default_rounds=29000
+)
 security = HTTPBearer()
 
 SECRET_KEY = settings.better_auth_secret
@@ -41,35 +37,42 @@ class TokenData(BaseModel):
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    # Early reject – bcrypt max 72 bytes
-    if len(plain_password.encode('utf-8')) > 72:
+    # Early reject – limit password length for security, specifically check for bcrypt 72-byte limit
+    if len(plain_password.encode('utf-8')) > 72:  # Bcrypt has a 72-byte limit
         return False  # Don't even try – safe fail
 
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception:
+        # Handle verification errors gracefully
+        return False
 
 
 def get_password_hash(password: str) -> str:
-    # Early reject – prevent crash
+    # Early reject – prevent crash, specifically check for bcrypt 72-byte limit
     password_bytes = password.encode('utf-8')
-    if len(password_bytes) > 72:
+    if len(password_bytes) > 72:  # Bcrypt has a 72-byte limit, enforce this to avoid bcrypt errors
         raise HTTPException(
             status_code=400,
-            detail="Password cannot be longer than 72 bytes/characters (bcrypt limit). Shorten it."
+            detail="Password cannot be longer than 72 bytes. Please use a shorter password."
         )
-
-    # Safe truncate – use bytes directly (no decode needed)
-    safe_bytes = password_bytes[:72]
 
     try:
-        return pwd_context.hash(safe_bytes.decode('utf-8', errors='ignore'))
+        return pwd_context.hash(password)  # Use full password, no truncation needed with argon2
     except Exception as e:
-        # Handle bcrypt compatibility issues in various environments
-        print(f"Warning: bcrypt hashing issue: {e}")
-        # Re-raise the exception to maintain proper error handling
-        raise HTTPException(
-            status_code=400,
-            detail="Password hashing error - please try again with a different password."
-        )
+        # Handle any hashing issues
+        error_msg = str(e).lower()
+        print(f"Warning: password hashing issue: {e}")
+        if "bcrypt" in error_msg or "72" in error_msg or "byte" in error_msg:
+            raise HTTPException(
+                status_code=400,
+                detail="Password too long - please use a shorter password (under 72 characters)."
+            )
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="Password hashing error - please try again with a different password."
+            )
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):

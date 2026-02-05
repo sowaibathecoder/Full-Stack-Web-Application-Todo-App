@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     # Application settings
     environment: str = "development"
     log_level: str = "INFO"
+    allowed_origins: str = "*"  # Comma-separated list of allowed origins, defaults to all
 
     class Config:
         env_file = ".env"

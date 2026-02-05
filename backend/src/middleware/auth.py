@@ -4,13 +4,10 @@ Handles JWT validation and user identification for protected routes.
 """
 from datetime import datetime, timedelta
 from typing import Optional
-from sqlmodel import Session
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from ..config import settings
-from ..models import User
-from ..database import get_db
 
 # Initialize security scheme
 security = HTTPBearer()
@@ -40,8 +37,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 
 async def get_current_user_id(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
+    credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> str:
     """
     Dependency to get the current user ID from the JWT token in the Authorization header.
@@ -63,15 +59,6 @@ async def get_current_user_id(
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Could not validate credentials - no user ID in token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-
-        # Verify that the user exists in the database
-        user = db.query(User).filter(User.id == user_id).first()
-        if user is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials - user not found",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 

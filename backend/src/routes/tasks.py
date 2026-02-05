@@ -43,10 +43,11 @@ async def get_tasks(
 
     if search:
         from sqlalchemy import or_
+        # Search in both title and description - SQLAlchemy handles NULLs properly
         query = query.where(
             or_(
                 Task.title.contains(search),
-                Task.description.contains(search) if Task.description else False
+                Task.description.contains(search)
             )
         )
 

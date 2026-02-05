@@ -4,8 +4,8 @@ Database utility functions for the Full-Stack Multi-User Todo Web Application.
 from typing import Optional
 from sqlmodel import select
 from sqlalchemy.exc import IntegrityError
-from models import User, Task
-from db import get_session
+from ..models import User, Task
+from ..db import get_session, get_async_session
 
 
 async def get_user_by_email(email: str) -> Optional[User]:
@@ -15,7 +15,7 @@ async def get_user_by_email(email: str) -> Optional[User]:
     async with get_session() as session:
         statement = select(User).where(User.email == email)
         result = await session.execute(statement)
-        return result.first()
+        return result.scalar_one_or_none()
 
 
 async def create_user(email: str, password: str, name: Optional[str] = None) -> Optional[User]:
@@ -28,7 +28,7 @@ async def create_user(email: str, password: str, name: Optional[str] = None) -> 
 
     user = User(
         email=email,
-        password=hashed_password,
+        hashed_password=hashed_password,
         name=name
     )
 
@@ -51,7 +51,7 @@ async def get_task_by_id(task_id: int, user_id: str) -> Optional[Task]:
     async with get_session() as session:
         statement = select(Task).where(Task.id == task_id, Task.user_id == user_id)
         result = await session.execute(statement)
-        return result.first()
+        return result.scalar_one_or_none()
 
 
 async def get_tasks_for_user(
@@ -81,10 +81,11 @@ async def get_tasks_for_user(
 
         if search:
             from sqlalchemy import or_
+            # Search in both title and description - SQLAlchemy handles NULLs properly
             statement = statement.where(
                 or_(
                     Task.title.contains(search),
-                    Task.description.contains(search) if Task.description else False
+                    Task.description.contains(search)
                 )
             )
 
@@ -92,7 +93,7 @@ async def get_tasks_for_user(
         statement = statement.offset(skip).limit(limit)
 
         result = await session.execute(statement)
-        return result.all()
+        return result.scalars().all()
 
 
 async def create_task_for_user(
@@ -107,15 +108,14 @@ async def create_task_for_user(
     Create a new task for a specific user.
     """
     from datetime import datetime
-    import json
 
     task = Task(
         title=title,
         description=description,
         user_id=user_id,
         priority=priority,
-        tags=json.dumps(tags) if tags else "[]",
-        due_date=datetime.fromisoformat(due_date) if due_date else None
+        tags=tags if tags else [],
+        due_date=due_date
     )
 
     async with get_session() as session:
@@ -146,7 +146,7 @@ async def update_task(
         # First verify the task belongs to the user
         statement = select(Task).where(Task.id == task_id, Task.user_id == user_id)
         result = await session.execute(statement)
-        task = result.first()
+        task = result.scalar_one_or_none()
 
         if not task:
             return None
@@ -161,9 +161,9 @@ async def update_task(
         if priority is not None:
             task.priority = priority
         if tags is not None:
-            task.tags = json.dumps(tags)
+            task.tags = tags
         if due_date is not None:
-            task.due_date = datetime.fromisoformat(due_date)
+            task.due_date = due_date
 
         task.updated_at = datetime.utcnow()
 
@@ -181,7 +181,7 @@ async def delete_task(task_id: int, user_id: str) -> bool:
     async with get_session() as session:
         statement = select(Task).where(Task.id == task_id, Task.user_id == user_id)
         result = await session.execute(statement)
-        task = result.first()
+        task = result.scalar_one_or_none()
 
         if not task:
             return False

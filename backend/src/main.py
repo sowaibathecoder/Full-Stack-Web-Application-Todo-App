@@ -25,7 +25,7 @@ def create_app() -> FastAPI:
     # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # In production, configure specific origins
+        allow_origins=settings.allowed_origins.split(",") if settings.allowed_origins else ["*"],  # Configure specific origins in production
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -33,7 +33,7 @@ def create_app() -> FastAPI:
 
     # Create database tables on startup
     @app.on_event("startup")
-    async def on_startup():
+    def on_startup():
         create_db_and_tables()
 
     # Include API routes
