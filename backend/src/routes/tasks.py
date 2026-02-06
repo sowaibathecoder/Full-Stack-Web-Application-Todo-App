@@ -148,9 +148,17 @@ async def create_task(
     """
     Create a new task for the authenticated user.
     """
+    # Convert tags from array to JSON string for database storage
+    task_data = task.dict(exclude={'user_id'})
+
+    # Handle tags conversion from array to JSON string
+    if hasattr(task, 'tags') and task.tags is not None:
+        import json
+        task_data['tags'] = json.dumps(task.tags)
+
     # Ensure the task is associated with the current user
     db_task = Task(
-        **task.dict(exclude={'user_id'}),  # Exclude user_id from the request
+        **task_data,  # Exclude user_id from the request
         user_id=current_user_id  # Use the authenticated user's ID
     )
 
@@ -207,6 +215,12 @@ async def update_task(
 
     # Update the task with the provided fields
     update_data = task_update.dict(exclude_unset=True)
+
+    # Handle tags conversion from array to JSON string
+    if 'tags' in update_data and update_data['tags'] is not None:
+        import json
+        update_data['tags'] = json.dumps(update_data['tags'])
+
     for field, value in update_data.items():
         setattr(db_task, field, value)
 
@@ -239,6 +253,12 @@ async def partial_update_task(
 
     # Update the task with the provided fields
     update_data = task_update.dict(exclude_unset=True)
+
+    # Handle tags conversion from array to JSON string
+    if 'tags' in update_data and update_data['tags'] is not None:
+        import json
+        update_data['tags'] = json.dumps(update_data['tags'])
+
     for field, value in update_data.items():
         setattr(db_task, field, value)
 

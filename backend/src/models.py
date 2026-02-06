@@ -7,6 +7,7 @@ from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, String, DateTime, Boolean, Text
 from enum import Enum
 import uuid
+import json
 
 
 class TaskPriority(str, Enum):
@@ -50,7 +51,7 @@ class Task(SQLModel, table=True):
 
     # Intermediate features
     priority: Optional[str] = Field(sa_column=Column(String, index=True))  # Index for priority
-    tags: Optional[str] = Field(default=None, sa_column=Column(Text))  # Store as JSON string
+    tags: Optional[str] = Field(default='[]', sa_column=Column(Text))  # Store as JSON string, default to empty array
 
     # Advanced features
     due_date: Optional[datetime] = Field(

@@ -147,8 +147,9 @@ export const TaskFormModal = ({ isOpen, onClose, task, onSave }: TaskFormModalPr
         // Update existing task
         savedTask = await taskApi.updateTask(task.id, sanitizedData as TaskUpdate);
       } else {
-        // Create new task - user_id will be set by the backend from JWT
-        savedTask = await taskApi.createTask(sanitizedData as TaskCreate);
+        // Create new task - exclude user_id as it will be set by the backend from JWT
+        const { user_id, ...createData } = sanitizedData as any;
+        savedTask = await taskApi.createTask(createData as TaskCreate);
       }
 
       onSave(savedTask);
