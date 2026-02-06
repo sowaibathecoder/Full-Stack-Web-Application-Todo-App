@@ -12,14 +12,15 @@ from .models import User, Task  # Import models to register them with SQLModel m
 # Function to clean SSL parameters for different database drivers
 def get_clean_database_url(original_url: str) -> str:
     """Remove SSL parameters that might cause issues with certain drivers."""
-    if '?sslmode=' in original_url or '&sslmode=' in original_url:
+    if '?' in original_url and ('?sslmode=' in original_url or '&sslmode=' in original_url or '&channel_binding=' in original_url):
         if '?' in original_url:
-            parts = original_url.split('?', 1)
-            main_url = parts[0]
-            params = parts[1]
+            main_url, params_str = original_url.split('?', 1)
+            params = params_str.split('&')
             filtered_params = []
-            for param in params.split('&'):
-                if not param.startswith(('sslmode=', 'sslcert=', 'sslkey=', 'sslrootcert=')):
+            # Parameters that are known to cause issues with database drivers
+            problematic_params = ('sslmode=', 'sslcert=', 'sslkey=', 'sslrootcert=', 'channel_binding=')
+            for param in params:
+                if not any(param.startswith(p) for p in problematic_params):
                     filtered_params.append(param)
             if filtered_params:
                 return f"{main_url}?{'&'.join(filtered_params)}"
@@ -46,38 +47,37 @@ def get_async_database_url():
     if db_url.startswith("postgresql://"):
         # Remove SSL parameters that asyncpg may not support
         base_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
-        # Remove sslmode and other SSL parameters if present
-        if '?sslmode=' in base_url or '&sslmode=' in base_url:
-            # Remove query parameters that may cause issues
-            if '?' in base_url:
-                parts = base_url.split('?', 1)
-                main_url = parts[0]
-                params = parts[1]
-                filtered_params = []
-                for param in params.split('&'):
-                    if not param.startswith(('sslmode=', 'sslcert=', 'sslkey=', 'sslrootcert=')):
-                        filtered_params.append(param)
-                if filtered_params:
-                    base_url = f"{main_url}?{'&'.join(filtered_params)}"
-                else:
-                    base_url = main_url
+        # Remove sslmode, channel_binding, and other SSL parameters if present
+        if '?' in base_url:
+            main_url, params_str = base_url.split('?', 1)
+            params = params_str.split('&')
+            filtered_params = []
+            # Parameters that are known to cause issues with asyncpg
+            problematic_params = ('sslmode=', 'sslcert=', 'sslkey=', 'sslrootcert=', 'channel_binding=')
+            for param in params:
+                if not any(param.startswith(p) for p in problematic_params):
+                    filtered_params.append(param)
+            if filtered_params:
+                base_url = f"{main_url}?{'&'.join(filtered_params)}"
+            else:
+                base_url = main_url
         return base_url
     elif db_url.startswith("postgres://"):
         # Same treatment for postgres:// URLs
         base_url = db_url.replace("postgres://", "postgresql+asyncpg://")
-        if '?sslmode=' in base_url or '&sslmode=' in base_url:
-            if '?' in base_url:
-                parts = base_url.split('?', 1)
-                main_url = parts[0]
-                params = parts[1]
-                filtered_params = []
-                for param in params.split('&'):
-                    if not param.startswith(('sslmode=', 'sslcert=', 'sslkey=', 'sslrootcert=')):
-                        filtered_params.append(param)
-                if filtered_params:
-                    base_url = f"{main_url}?{'&'.join(filtered_params)}"
-                else:
-                    base_url = main_url
+        if '?' in base_url:
+            main_url, params_str = base_url.split('?', 1)
+            params = params_str.split('&')
+            filtered_params = []
+            # Parameters that are known to cause issues with asyncpg
+            problematic_params = ('sslmode=', 'sslcert=', 'sslkey=', 'sslrootcert=', 'channel_binding=')
+            for param in params:
+                if not any(param.startswith(p) for p in problematic_params):
+                    filtered_params.append(param)
+            if filtered_params:
+                base_url = f"{main_url}?{'&'.join(filtered_params)}"
+            else:
+                base_url = main_url
         return base_url
     else:
         return db_url
