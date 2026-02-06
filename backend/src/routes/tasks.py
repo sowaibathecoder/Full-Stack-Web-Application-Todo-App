@@ -122,6 +122,15 @@ async def get_tasks(
         try:
             result = await session.execute(query)
             tasks = result.scalars().all()
+
+            # Convert JSON string tags back to arrays for API response
+            import json
+            for task in tasks:
+                if hasattr(task, 'tags') and task.tags and isinstance(task.tags, str):
+                    try:
+                        task.tags = json.loads(task.tags)
+                    except (json.JSONDecodeError, TypeError):
+                        task.tags = []
         except Exception as e:
             print(f"Error executing query: {str(e)}")
             import traceback
@@ -166,6 +175,14 @@ async def create_task(
     await session.commit()
     await session.refresh(db_task)
 
+    # Convert JSON string tags back to array for API response
+    import json
+    if hasattr(db_task, 'tags') and db_task.tags and isinstance(db_task.tags, str):
+        try:
+            db_task.tags = json.loads(db_task.tags)
+        except (json.JSONDecodeError, TypeError):
+            db_task.tags = []
+
     return db_task
 
 
@@ -188,6 +205,14 @@ async def get_task(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Task not found or does not belong to authenticated user"
         )
+
+    # Convert JSON string tags back to array for API response
+    import json
+    if hasattr(task, 'tags') and task.tags and isinstance(task.tags, str):
+        try:
+            task.tags = json.loads(task.tags)
+        except (json.JSONDecodeError, TypeError):
+            task.tags = []
 
     return task
 
@@ -227,6 +252,14 @@ async def update_task(
     await session.commit()
     await session.refresh(db_task)
 
+    # Convert JSON string tags back to array for API response
+    import json
+    if hasattr(db_task, 'tags') and db_task.tags and isinstance(db_task.tags, str):
+        try:
+            db_task.tags = json.loads(db_task.tags)
+        except (json.JSONDecodeError, TypeError):
+            db_task.tags = []
+
     return db_task
 
 
@@ -264,6 +297,14 @@ async def partial_update_task(
 
     await session.commit()
     await session.refresh(db_task)
+
+    # Convert JSON string tags back to array for API response
+    import json
+    if hasattr(db_task, 'tags') and db_task.tags and isinstance(db_task.tags, str):
+        try:
+            db_task.tags = json.loads(db_task.tags)
+        except (json.JSONDecodeError, TypeError):
+            db_task.tags = []
 
     return db_task
 
