@@ -50,7 +50,7 @@ class Task(SQLModel, table=True):
 
     # Intermediate features
     priority: Optional[str] = Field(sa_column=Column(String, index=True))  # Index for priority
-    tags: Optional[List[str]] = Field(default=None, sa_column=Column(Text))  # Store as JSON string
+    tags: Optional[str] = Field(default=None, sa_column=Column(Text))  # Store as JSON string
 
     # Advanced features
     due_date: Optional[datetime] = Field(

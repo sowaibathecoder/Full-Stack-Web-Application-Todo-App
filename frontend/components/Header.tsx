@@ -12,7 +12,7 @@ export const Header = () => {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <img src="/hb-logo.svg" alt="Logo" className="h-8 w-auto mr-2" />
+              <img src="/th-logo.svg" alt="Logo" className="h-8 w-auto mr-2" />
               <span className="text-xl font-bold text-indigo-600">TaskHub</span>
             </div>
           </div>

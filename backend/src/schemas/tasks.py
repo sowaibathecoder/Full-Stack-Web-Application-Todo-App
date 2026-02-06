@@ -14,7 +14,7 @@ class TaskBase(BaseModel):
     description: Optional[str] = None
     completed: bool = False
     priority: Optional[str] = None
-    tags: Optional[List[str]] = []
+    tags: Optional[str] = None
     due_date: Optional[datetime] = None
     is_recurring: bool = False
     recurrence_rule: Optional[str] = None
@@ -36,7 +36,7 @@ class TaskUpdate(BaseModel):
     description: Optional[str] = None
     completed: Optional[bool] = None
     priority: Optional[str] = None
-    tags: Optional[List[str]] = None
+    tags: Optional[str] = None
     due_date: Optional[datetime] = None
     is_recurring: Optional[bool] = None
     recurrence_rule: Optional[str] = None

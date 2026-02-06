@@ -101,7 +101,7 @@ async def create_task_for_user(
     user_id: str,
     description: Optional[str] = None,
     priority: Optional[str] = None,
-    tags: Optional[list[str]] = None,
+    tags: Optional[str] = None,
     due_date: Optional[str] = None
 ) -> Task:
     """
@@ -114,7 +114,7 @@ async def create_task_for_user(
         description=description,
         user_id=user_id,
         priority=priority,
-        tags=tags if tags else [],
+        tags=tags,
         due_date=due_date
     )
 
@@ -132,7 +132,7 @@ async def update_task(
     description: Optional[str] = None,
     completed: Optional[bool] = None,
     priority: Optional[str] = None,
-    tags: Optional[list[str]] = None,
+    tags: Optional[str] = None,
     due_date: Optional[str] = None
 ) -> Optional[Task]:
     """
