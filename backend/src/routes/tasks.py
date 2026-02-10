@@ -46,29 +46,36 @@ async def get_tasks(
             # If status is "all" or any other value, don't apply status filter
 
         if priority is not None and isinstance(priority, str) and priority.strip():
-            query = query.where(Task.priority == priority.lower())
+            query = query.where(Task.priority.ilike(priority.lower()))
 
         # Tag filtering: handle tags stored as JSON string in Text column
-        # NOTE: This may cause issues with some database backends, so we'll skip it for now
-        # if tag is not None and isinstance(tag, str) and tag.strip():
-        #     # Since tags are stored as JSON string, search for the tag within the JSON string
-        #     # Format might be like ["work", "important"] so we need to match the tag appropriately
-        #     # Use LIKE operator to search for the tag in the JSON string representation
-        #     try:
-        #         escaped_tag = tag.replace("'", "''")  # Escape single quotes for SQL safety
-        #         query = query.where(Task.tags.is_not(None)).where(Task.tags.like(f'%{escaped_tag}%'))
-        #     except Exception:
-        #         # If tag filtering fails, skip it to avoid breaking the query
-        #         print(f"Tag filtering failed, skipping: {tag}")
-        #         pass
+        if tag is not None and isinstance(tag, str) and tag.strip():
+            # Since tags are stored as JSON string, search for the tag within the JSON string
+            # Format might be like ["work", "important"] so we need to match the tag appropriately
+            # Use LIKE operator to search for the tag in the JSON string representation
+            # Search for the tag both with quotes and without (to handle ["tag"] and ["tag1", "tag2"])
+            try:
+                escaped_tag = tag.replace("'", "''").replace('"', '')  # Escape quotes for SQL safety
+                # Search for the tag in JSON array format: ["tag"] or ["tag1", "tag2"]
+                from sqlalchemy import or_
+                query = query.where(Task.tags.is_not(None)).where(
+                    or_(
+                        Task.tags.ilike(f'%"{escaped_tag}"%'),  # Exact tag in quotes within JSON array
+                    )
+                )
+            except Exception as e:
+                # If tag filtering fails, skip it to avoid breaking the query
+                print(f"Tag filtering failed, skipping: {tag}, error: {str(e)}")
+                pass
 
         if search is not None and isinstance(search, str) and search.strip():
             from sqlalchemy import or_
             # Search in both title and description - SQLAlchemy handles NULLs properly
+            # Use ilike for case-insensitive search
             query = query.where(
                 or_(
-                    Task.title.contains(search),
-                    Task.description.contains(search)
+                    Task.title.ilike(f'%{search}%'),
+                    Task.description.ilike(f'%{search}%')
                 )
             )
 
@@ -360,5 +367,13 @@ async def toggle_task_completion(
 
     await session.commit()
     await session.refresh(db_task)
+
+    # Convert JSON string tags back to array for API response
+    import json
+    if hasattr(db_task, 'tags') and db_task.tags and isinstance(db_task.tags, str):
+        try:
+            db_task.tags = json.loads(db_task.tags)
+        except (json.JSONDecodeError, TypeError):
+            db_task.tags = []
 
     return db_task

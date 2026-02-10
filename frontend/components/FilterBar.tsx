@@ -1,7 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PrioritySelector } from './PrioritySelector';
 
 interface FilterBarProps {
+  initialFilters?: {
+    status?: string;
+    priority?: string;
+    tag?: string;
+    search?: string;
+    due_before?: string;
+    due_after?: string;
+    sort?: string;
+    order?: string;
+  };
   onFiltersChange: (filters: {
     status: string;
     priority: string;
@@ -14,15 +24,27 @@ interface FilterBarProps {
   }) => void;
 }
 
-export const FilterBar = ({ onFiltersChange }: FilterBarProps) => {
-  const [status, setStatus] = useState('all');
-  const [priority, setPriority] = useState('');
-  const [tag, setTag] = useState('');
-  const [search, setSearch] = useState('');
-  const [dueBefore, setDueBefore] = useState('');
-  const [dueAfter, setDueAfter] = useState('');
-  const [sort, setSort] = useState('created_at');
-  const [order, setOrder] = useState('desc');
+export const FilterBar = ({ initialFilters, onFiltersChange }: FilterBarProps) => {
+  const [status, setStatus] = useState(initialFilters?.status || 'all');
+  const [priority, setPriority] = useState(initialFilters?.priority || '');
+  const [tag, setTag] = useState(initialFilters?.tag || '');
+  const [search, setSearch] = useState(initialFilters?.search || '');
+  const [dueBefore, setDueBefore] = useState(initialFilters?.due_before || '');
+  const [dueAfter, setDueAfter] = useState(initialFilters?.due_after || '');
+  const [sort, setSort] = useState(initialFilters?.sort || 'created_at');
+  const [order, setOrder] = useState(initialFilters?.order || 'desc');
+
+  // Sync with initial filters when they change
+  useEffect(() => {
+    setStatus(initialFilters?.status || 'all');
+    setPriority(initialFilters?.priority || '');
+    setTag(initialFilters?.tag || '');
+    setSearch(initialFilters?.search || '');
+    setDueBefore(initialFilters?.due_before || '');
+    setDueAfter(initialFilters?.due_after || '');
+    setSort(initialFilters?.sort || 'created_at');
+    setOrder(initialFilters?.order || 'desc');
+  }, [initialFilters]);
 
   const handleApplyFilters = () => {
     onFiltersChange({
@@ -92,7 +114,12 @@ export const FilterBar = ({ onFiltersChange }: FilterBarProps) => {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleApplyFilters()}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent form submission which could cause reset
+                handleApplyFilters();
+              }
+            }}
             placeholder="Search tasks..."
             className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
@@ -151,7 +178,12 @@ export const FilterBar = ({ onFiltersChange }: FilterBarProps) => {
             type="text"
             value={tag}
             onChange={(e) => setTag(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleApplyFilters()}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault(); // Prevent form submission which could cause reset
+                handleApplyFilters();
+              }
+            }}
             placeholder="Filter by tag..."
             className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />

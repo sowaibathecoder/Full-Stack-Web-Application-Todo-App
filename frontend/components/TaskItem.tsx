@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { TaskRead } from '@/types/tasks';
 import { taskApi } from '@/lib/api';
+import { TaskCompletionConfirmation } from './TaskCompletionConfirmation';
 import { sanitizeHTML } from '@/utils/sanitize';
+import { memo } from 'react';
 
 interface TaskItemProps {
   task: TaskRead;
@@ -9,7 +12,9 @@ interface TaskItemProps {
   onDelete: (taskId: number) => void;
 }
 
-export const TaskItem = ({ task, onToggle, onEdit, onDelete }: TaskItemProps) => {
+const TaskItemComponent = ({ task, onToggle, onEdit, onDelete }: TaskItemProps) => {
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
 
@@ -61,13 +66,25 @@ export const TaskItem = ({ task, onToggle, onEdit, onDelete }: TaskItemProps) =>
     }
   })();
 
-  const handleToggle = async () => {
+  const handleToggleClick = () => {
+    setShowCompletionModal(true);
+  };
+
+  const handleToggleConfirm = async (taskId: number) => {
     try {
-      const updatedTask = await taskApi.toggleTaskCompletion(task.id);
+      const updatedTask = await taskApi.toggleTaskCompletion(taskId);
       onToggle(updatedTask);
     } catch (error) {
       console.error('Error toggling task completion:', error);
+      // Error is handled by parent component through onToggle
+    } finally {
+      // Always close the modal regardless of success or failure
+      setShowCompletionModal(false);
     }
+  };
+
+  const handleToggleCancel = () => {
+    setShowCompletionModal(false);
   };
 
   return (
@@ -77,8 +94,8 @@ export const TaskItem = ({ task, onToggle, onEdit, onDelete }: TaskItemProps) =>
           <input
             type="checkbox"
             checked={task.completed}
-            onChange={handleToggle}
-            className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+            onChange={handleToggleClick}
+            className="focus:ring-indigo-500 h-5 w-5 text-indigo-600 border-gray-400 rounded bg-white"
           />
         </div>
         <div className="ml-3 flex-1">
@@ -143,6 +160,19 @@ export const TaskItem = ({ task, onToggle, onEdit, onDelete }: TaskItemProps) =>
           Created: {formatDate(task.created_at)}
         </div>
       )}
+
+      {showCompletionModal && (
+        <TaskCompletionConfirmation
+          isOpen={showCompletionModal}
+          onClose={handleToggleCancel}
+          onConfirm={handleToggleConfirm}
+          taskId={task.id}
+          taskTitle={task.title}
+          isCompleting={!task.completed}
+        />
+      )}
     </li>
   );
 };
+
+export const TaskItem = memo(TaskItemComponent);

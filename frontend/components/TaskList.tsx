@@ -94,27 +94,47 @@ export const TaskList = () => {
   };
 
   const handleTaskCreated = (newTask: TaskRead) => {
-    setTasks([newTask, ...tasks]);
+    setTasks(prevTasks => [newTask, ...prevTasks]);
     setShowModal(false);
     showNotification('success', 'Task created successfully');
   };
 
   const handleTaskUpdated = (updatedTask: TaskRead) => {
-    setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
+    setTasks(prevTasks => {
+      // Create a new array to force re-render
+      const newTasks = [...prevTasks];
+      const taskIndex = newTasks.findIndex(task => task.id === updatedTask.id);
+      
+      if (taskIndex !== -1) {
+        newTasks[taskIndex] = { ...updatedTask }; // Create new object to ensure change detection
+      }
+      
+      return newTasks;
+    });
     setEditingTask(null);
     setShowModal(false);
     showNotification('success', 'Task updated successfully');
   };
 
   const handleTaskDeleted = (taskId: number) => {
-    setTasks(tasks.filter(task => task.id !== taskId));
+    setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
     setTaskToDelete(null);
     setShowDeleteModal(false);
     showNotification('success', 'Task deleted successfully');
   };
 
   const handleTaskToggled = (updatedTask: TaskRead) => {
-    setTasks(tasks.map(t => t.id === updatedTask.id ? updatedTask : t));
+    setTasks(prevTasks => {
+      // Create a new array to force re-render
+      const newTasks = [...prevTasks];
+      const taskIndex = newTasks.findIndex(t => t.id === updatedTask.id);
+      
+      if (taskIndex !== -1) {
+        newTasks[taskIndex] = { ...updatedTask }; // Create new object to ensure change detection
+      }
+      
+      return newTasks;
+    });
     showNotification('success', updatedTask.completed ? 'Task marked as completed' : 'Task marked as pending');
   };
 
@@ -244,7 +264,7 @@ export const TaskList = () => {
       </div>
 
       {/* Filter Bar */}
-      <FilterBar onFiltersChange={handleFiltersChange} />
+      <FilterBar initialFilters={filters} onFiltersChange={handleFiltersChange} />
 
       {tasks.length === 0 ? (
         <div className="text-center py-12">
