@@ -20,6 +20,11 @@ export const TaskList = () => {
   const [deletingTask, setDeletingTask] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+  // Task counters
+  const [totalTasks, setTotalTasks] = useState(0);
+  const [pendingTasks, setPendingTasks] = useState(0);
+  const [completedTasks, setCompletedTasks] = useState(0);
+
   // Filter states
   const [filters, setFilters] = useState({
     status: 'all',
@@ -32,9 +37,25 @@ export const TaskList = () => {
     order: 'desc'
   });
 
+  // Calculate task counts
+  const calculateTaskCounts = (tasksArray: TaskRead[]) => {
+    const total = tasksArray.length;
+    const completed = tasksArray.filter(task => task.completed).length;
+    const pending = total - completed;
+    
+    setTotalTasks(total);
+    setCompletedTasks(completed);
+    setPendingTasks(pending);
+  };
+
   useEffect(() => {
     fetchTasks();
   }, []);
+
+  // Update counts when tasks change
+  useEffect(() => {
+    calculateTaskCounts(tasks);
+  }, [tasks]);
 
   const showNotification = (type: 'success' | 'error', message: string) => {
     setNotification({ type, message });
@@ -253,6 +274,22 @@ export const TaskList = () => {
 
   return (
     <div className="space-y-4">
+      {/* Task Counters Section */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+          <div className="text-sm text-blue-800 font-medium">Total Tasks</div>
+          <div className="text-2xl font-bold text-blue-600 mt-1">{totalTasks}</div>
+        </div>
+        <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-100">
+          <div className="text-sm text-yellow-800 font-medium">Pending Tasks</div>
+          <div className="text-2xl font-bold text-yellow-600 mt-1">{pendingTasks}</div>
+        </div>
+        <div className="bg-green-50 rounded-lg p-4 border border-green-100">
+          <div className="text-sm text-green-800 font-medium">Completed Tasks</div>
+          <div className="text-2xl font-bold text-green-600 mt-1">{completedTasks}</div>
+        </div>
+      </div>
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-xl font-semibold text-gray-800">Tasks</h2>
         <button
