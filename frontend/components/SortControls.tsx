@@ -23,17 +23,17 @@ export const SortControls = ({ sortField, sortOrder, onSortChange }: SortControl
   return (
     <div className="flex items-center space-x-4">
       <div className="flex items-center">
-        <label htmlFor="sort-field" className="mr-2 text-sm font-medium text-gray-700">
+        <label htmlFor="sort-field" className="mr-2 text-sm font-medium text-gray-700 dark:text-gray-300">
           Sort by:
         </label>
         <select
           id="sort-field"
           value={sortField}
           onChange={(e) => handleFieldChange(e.target.value)}
-          className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          className="rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         >
           {fields.map((field) => (
-            <option key={field.value} value={field.value}>
+            <option key={field.value} value={field.value} className="dark:bg-gray-700 dark:text-white">
               {field.label}
             </option>
           ))}
@@ -41,23 +41,23 @@ export const SortControls = ({ sortField, sortOrder, onSortChange }: SortControl
       </div>
 
       <div className="flex items-center">
-        <label htmlFor="sort-order" className="mr-2 text-sm font-medium text-gray-700">
+        <label htmlFor="sort-order" className="mr-2 text-sm font-medium text-gray-700 dark:text-gray-300">
           Order:
         </label>
         <select
           id="sort-order"
           value={sortOrder}
           onChange={(e) => handleOrderChange(e.target.value as 'asc' | 'desc')}
-          className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          className="rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         >
-          <option value="asc">Ascending</option>
-          <option value="desc">Descending</option>
+          <option value="asc" className="dark:bg-gray-700 dark:text-white">Ascending</option>
+          <option value="desc" className="dark:bg-gray-700 dark:text-white">Descending</option>
         </select>
       </div>
 
       <button
         onClick={() => handleOrderChange(sortOrder === 'asc' ? 'desc' : 'asc')}
-        className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
       >
         {sortOrder === 'asc' ? (
           <>

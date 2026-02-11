@@ -35,10 +35,10 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
   if (!visible) return null;
 
   const typeStyles = {
-    success: 'bg-green-50 border-green-500 text-green-700',
-    error: 'bg-red-50 border-red-500 text-red-700',
-    warning: 'bg-yellow-50 border-yellow-500 text-yellow-700',
-    info: 'bg-blue-50 border-blue-500 text-blue-700',
+    success: 'bg-green-50 dark:bg-green-900/30 border-green-500 dark:border-green-700 text-green-700 dark:text-green-300',
+    error: 'bg-red-50 dark:bg-red-900/30 border-red-500 dark:border-red-700 text-red-700 dark:text-red-300',
+    warning: 'bg-yellow-50 dark:bg-yellow-900/30 border-yellow-500 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300',
+    info: 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 dark:border-blue-700 text-blue-700 dark:text-blue-300',
   };
 
   const typeIcons = {
@@ -80,12 +80,12 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
               type="button"
               className={`inline-flex rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                 type === 'success'
-                  ? 'bg-green-50 text-green-500 hover:bg-green-100 focus:ring-green-600 focus:ring-offset-green-50'
+                  ? 'bg-green-50 dark:bg-green-800/50 text-green-500 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-700/50 focus:ring-green-600 dark:focus:ring-green-500 focus:ring-offset-green-50 dark:focus:ring-offset-gray-800'
                   : type === 'error'
-                    ? 'bg-red-50 text-red-500 hover:bg-red-100 focus:ring-red-600 focus:ring-offset-red-50'
+                    ? 'bg-red-50 dark:bg-red-800/50 text-red-500 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-700/50 focus:ring-red-600 dark:focus:ring-red-500 focus:ring-offset-red-50 dark:focus:ring-offset-gray-800'
                     : type === 'warning'
-                      ? 'bg-yellow-50 text-yellow-500 hover:bg-yellow-100 focus:ring-yellow-600 focus:ring-offset-yellow-50'
-                      : 'bg-blue-50 text-blue-500 hover:bg-blue-100 focus:ring-blue-600 focus:ring-offset-blue-50'
+                      ? 'bg-yellow-50 dark:bg-yellow-800/50 text-yellow-500 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-700/50 focus:ring-yellow-600 dark:focus:ring-yellow-500 focus:ring-offset-yellow-50 dark:focus:ring-offset-gray-800'
+                      : 'bg-blue-50 dark:bg-blue-800/50 text-blue-500 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-700/50 focus:ring-blue-600 dark:focus:ring-blue-500 focus:ring-offset-blue-50 dark:focus:ring-offset-gray-800'
               }`}
             >
               <span className="sr-only">Close</span>

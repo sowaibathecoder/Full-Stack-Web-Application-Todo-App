@@ -82,25 +82,25 @@ export const FilterBar = ({ initialFilters, onFiltersChange }: FilterBarProps) =
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow mb-6">
+    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Status Filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           >
-            <option value="all">All</option>
-            <option value="pending">Pending</option>
-            <option value="completed">Completed</option>
+            <option value="all" className="dark:bg-gray-700 dark:text-white">All</option>
+            <option value="pending" className="dark:bg-gray-700 dark:text-white">Pending</option>
+            <option value="completed" className="dark:bg-gray-700 dark:text-white">Completed</option>
           </select>
         </div>
 
         {/* Priority Filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Priority</label>
           <PrioritySelector
             priority={priority || null}
             onChange={setPriority}
@@ -109,7 +109,7 @@ export const FilterBar = ({ initialFilters, onFiltersChange }: FilterBarProps) =
 
         {/* Search */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search</label>
           <input
             type="text"
             value={search}
@@ -121,59 +121,59 @@ export const FilterBar = ({ initialFilters, onFiltersChange }: FilterBarProps) =
               }
             }}
             placeholder="Search tasks..."
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
 
         {/* Sort */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sort By</label>
           <div className="flex space-x-2">
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="flex-1 rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
-              <option value="created_at">Created At</option>
-              <option value="due_date">Due Date</option>
-              <option value="priority">Priority</option>
-              <option value="title">Title</option>
+              <option value="created_at" className="dark:bg-gray-700 dark:text-white">Created At</option>
+              <option value="due_date" className="dark:bg-gray-700 dark:text-white">Due Date</option>
+              <option value="priority" className="dark:bg-gray-700 dark:text-white">Priority</option>
+              <option value="title" className="dark:bg-gray-700 dark:text-white">Title</option>
             </select>
             <select
               value={order}
               onChange={(e) => setOrder(e.target.value)}
-              className="w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="w-24 rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
-              <option value="asc">Asc</option>
-              <option value="desc">Desc</option>
+              <option value="asc" className="dark:bg-gray-700 dark:text-white">Asc</option>
+              <option value="desc" className="dark:bg-gray-700 dark:text-white">Desc</option>
             </select>
           </div>
         </div>
 
         {/* Due Date Range */}
         <div className="sm:col-span-2 lg:col-span-1">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Due After</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Due After</label>
           <input
             type="date"
             value={dueAfter}
             onChange={(e) => setDueAfter(e.target.value)}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
 
         <div className="sm:col-span-2 lg:col-span-1">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Due Before</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Due Before</label>
           <input
             type="date"
             value={dueBefore}
             onChange={(e) => setDueBefore(e.target.value)}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
 
         {/* Tag Filter */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Tag</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tag</label>
           <input
             type="text"
             value={tag}
@@ -185,7 +185,7 @@ export const FilterBar = ({ initialFilters, onFiltersChange }: FilterBarProps) =
               }
             }}
             placeholder="Filter by tag..."
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           />
         </div>
       </div>
@@ -199,7 +199,7 @@ export const FilterBar = ({ initialFilters, onFiltersChange }: FilterBarProps) =
         </button>
         <button
           onClick={handleResetFilters}
-          className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full sm:w-auto"
+          className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full sm:w-auto"
         >
           Reset Filters
         </button>

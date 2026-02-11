@@ -39,13 +39,13 @@ const TaskItemComponent = ({ task, onToggle, onEdit, onDelete }: TaskItemProps) 
   const getPriorityColor = (priority: string | undefined) => {
     switch (priority) {
       case 'high':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200';
       case 'low':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200';
     }
   };
 
@@ -88,25 +88,25 @@ const TaskItemComponent = ({ task, onToggle, onEdit, onDelete }: TaskItemProps) 
   };
 
   return (
-    <li className={`bg-white p-4 rounded-lg shadow ${isOverdue && !task.completed ? 'border-l-4 border-red-500' : ''}`}>
+    <li className={`bg-white dark:bg-gray-800 p-4 rounded-lg shadow ${isOverdue && !task.completed ? 'border-l-4 border-red-500' : ''}`}>
       <div className="flex items-start">
         <div className="flex items-start h-5">
           <input
             type="checkbox"
             checked={task.completed}
             onChange={handleToggleClick}
-            className="focus:ring-indigo-500 h-5 w-5 text-indigo-600 border-gray-400 rounded bg-white"
+            className="focus:ring-indigo-500 dark:focus:ring-indigo-400 h-5 w-5 text-indigo-600 dark:text-indigo-400 border-gray-400 dark:border-gray-600 rounded bg-white dark:bg-gray-700"
           />
         </div>
         <div className="ml-3 flex-1">
           <div className="flex items-center justify-between">
-            <p className={`text-sm font-medium ${task.completed ? 'text-gray-500 line-through' : 'text-gray-900'}`}>
+            <p className={`text-sm font-medium ${task.completed ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-900 dark:text-gray-100'}`}>
               {sanitizeHTML(task.title)}
             </p>
             <div className="flex space-x-2">
               <button
                 onClick={onEdit}
-                className="text-gray-400 hover:text-gray-500"
+                className="text-gray-400 dark:text-gray-300 hover:text-gray-500 dark:hover:text-gray-200"
                 aria-label="Edit task"
               >
                 <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -115,7 +115,7 @@ const TaskItemComponent = ({ task, onToggle, onEdit, onDelete }: TaskItemProps) 
               </button>
               <button
                 onClick={() => onDelete(task.id)}
-                className="text-gray-400 hover:text-red-500"
+                className="text-gray-400 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400"
                 aria-label="Delete task"
               >
                 <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -126,27 +126,27 @@ const TaskItemComponent = ({ task, onToggle, onEdit, onDelete }: TaskItemProps) 
           </div>
 
           {task.description && (
-            <p className={`mt-1 text-sm ${task.completed ? 'text-gray-400' : 'text-gray-600'}`}>
+            <p className={`mt-1 text-sm ${task.completed ? 'text-gray-400 dark:text-gray-500' : 'text-gray-600 dark:text-gray-300'}`}>
               {sanitizeHTML(task.description)}
             </p>
           )}
 
           <div className="mt-2 flex flex-wrap gap-2">
             {task.priority && (
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(task.priority)} dark:bg-opacity-20`}>
                 {task.priority}
               </span>
             )}
 
             {task.tags && task.tags.map((tag, index) => (
-              <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200">
                 {tag}
               </span>
             ))}
 
             {task.due_date && (
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                isOverdue ? 'bg-red-100 text-red-800' : 'bg-purple-100 text-purple-800'
+                isOverdue ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200' : 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200'
               }`}>
                 Due: {formatDate(task.due_date)}
               </span>
@@ -156,7 +156,7 @@ const TaskItemComponent = ({ task, onToggle, onEdit, onDelete }: TaskItemProps) 
       </div>
 
       {task.created_at && (
-        <div className="mt-2 text-xs text-gray-500">
+        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
           Created: {formatDate(task.created_at)}
         </div>
       )}

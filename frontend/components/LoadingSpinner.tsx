@@ -31,7 +31,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         <span className="sr-only">{label}</span>
       </div>
       {label && (
-        <span className="mt-2 text-sm text-gray-600">{label}</span>
+        <span className="mt-2 text-sm text-gray-600 dark:text-gray-400">{label}</span>
       )}
     </div>
   );

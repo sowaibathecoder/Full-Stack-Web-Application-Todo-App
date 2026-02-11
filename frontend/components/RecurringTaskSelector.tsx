@@ -24,16 +24,16 @@ export const RecurringTaskSelector = ({
           checked={isRecurring}
           onChange={(e) => onToggle(e.target.checked)}
           disabled={disabled}
-          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 dark:border-gray-600 rounded dark:bg-gray-700"
         />
-        <label htmlFor="isRecurring" className="ml-2 block text-sm font-medium text-gray-700">
+        <label htmlFor="isRecurring" className="ml-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
           Recurring Task
         </label>
       </div>
 
       {isRecurring && (
         <div className="ml-6">
-          <label htmlFor="recurrenceRule" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="recurrenceRule" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Recurrence Rule
           </label>
           <select
@@ -41,12 +41,12 @@ export const RecurringTaskSelector = ({
             value={recurrenceRule || ''}
             onChange={(e) => onRuleChange(e.target.value)}
             disabled={disabled}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           >
-            <option value="">Select rule...</option>
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
+            <option value="" className="dark:bg-gray-700 dark:text-white">Select rule...</option>
+            <option value="daily" className="dark:bg-gray-700 dark:text-white">Daily</option>
+            <option value="weekly" className="dark:bg-gray-700 dark:text-white">Weekly</option>
+            <option value="monthly" className="dark:bg-gray-700 dark:text-white">Monthly</option>
           </select>
         </div>
       )}
